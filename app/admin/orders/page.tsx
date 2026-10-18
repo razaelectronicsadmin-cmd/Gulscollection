@@ -266,7 +266,7 @@ export default function OrdersManagementPage() {
               >
                 <span>{tab.label}</span>
                 <span
-                  className={`px-1.5 py-0.5 rounded-full text-[10px] ${
+                  className={`px-1.5 py-0.5 rounded-full text-[12px] ${
                     isActive ? 'bg-white/20 text-white' : 'bg-gray-200 text-gray-700'
                   }`}
                 >

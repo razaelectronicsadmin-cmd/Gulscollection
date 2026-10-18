@@ -37,7 +37,7 @@ export default function AboutUs() {
           className="w-full max-w-[550px] lg:max-w-[600px] flex flex-col items-center text-center md:items-start md:text-left backdrop-blur-[2px] md:backdrop-blur-none p-5 sm:p-8 md:p-0 rounded-sm md:rounded-none border border-[#C9A66B]/20 md:border-none bg-white/40 md:bg-transparent shadow-sm md:shadow-none"
         >
           {/* Subtitle tag */}
-          <span className="font-sans text-[10px] md:text-[11px] tracking-[0.25em] text-[#8C7A5B] uppercase font-semibold mb-3">
+          <span className="font-sans text-[12px] md:text-[11px] tracking-[0.25em] text-[#8C7A5B] uppercase font-semibold mb-3">
             Our Heritage
           </span>
 
@@ -49,7 +49,7 @@ export default function AboutUs() {
           {/* First Paragraph */}
           <p className="font-sans text-[14px] md:text-[16px] lg:text-[17px] leading-[1.7] md:leading-[1.9] text-[#29251D] mb-5 md:mb-7 font-light">
             Gul&apos;s Collection is not just a fragrance house it&apos;s a time
-            capsule[cite: 18]. Born from the idea that every decade has a scent, and
+            capsule. Born from the idea that every decade has a scent, and
             every person has an era, <strong className="font-semibold text-[#183629]">Decades by Gul&apos;s</strong> was created to let you
             <span className="italic uppercase font-semibold text-[#183629] ml-1">WEAR YOUR ERA.</span>
           </p>
@@ -62,7 +62,7 @@ export default function AboutUs() {
           {/* Final Paragraph */}
           <p className="font-sans text-[14px] md:text-[16px] lg:text-[17px] leading-[1.7] md:leading-[1.9] text-[#29251D] font-light">
             We craft premium, long-lasting, impression-based perfumes
-            that bring luxury niche fragrances within reach[cite: 18]. From bold
+            that bring luxury niche fragrances within reach. From bold
             masculine to soft feminine, from unisex modern to deep
             arabesque, our scents are designed to become your identity.
           </p>

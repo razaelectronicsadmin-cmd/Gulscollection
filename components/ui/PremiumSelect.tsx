@@ -118,7 +118,7 @@ export default function PremiumSelect({
                     <div className="flex flex-col truncate pr-2">
                       <span className="truncate">{opt.label}</span>
                       {opt.description && (
-                        <span className="text-[10px] text-brand-muted font-normal">{opt.description}</span>
+                        <span className="text-[12px] text-brand-muted font-normal">{opt.description}</span>
                       )}
                     </div>
                     {isSelected && <Check size={13} className="text-brand-green shrink-0 ml-1" />}

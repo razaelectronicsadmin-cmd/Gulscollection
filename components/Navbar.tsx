@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Search, ShoppingBag, Menu, X, ArrowRight } from 'lucide-react';
+import { Search, ShoppingBag, Phone, Mail, Menu, X, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
@@ -60,20 +60,105 @@ export default function Navbar() {
 
   const navLinks = [
     { name: 'Home', href: '/' },
+    { name: 'About', href: '/about' },
     { name: 'Fragrances', href: '/fragrance' },
     { name: 'Contact', href: '/contact' },
   ];
 
   return (
     <>
+
+<header className=" top-0 left-0 w-full z-40">
+    {/* ─── Top Announcement & Contact Ribbon ───────── */}
+      <div className="w-full bg-[#0b0f0e] text-[#F5F5F0] border-b border-brand-gold/15 px-[10px] text-xs md:text-sm font-sans">
+        <div className="w-full h-11 md:h-12 flex items-center justify-between">
+          {/* Left: Contact Info */}
+          <div className="hidden md:flex items-center space-x-6">
+            <a
+              href="tel:03332265461"
+              className="flex items-center gap-2 hover:text-brand-gold transition-colors"
+            >
+              <Phone size={15} className="text-brand-gold" />
+              <span>0333-2265461</span>
+            </a>
+            <a
+              href="mailto:gulscollection@gmail.com"
+              className="flex items-center gap-2 hover:text-brand-gold transition-colors"
+            >
+              <Mail size={15} className="text-brand-gold" />
+              <span>gulscollection@gmail.com</span>
+            </a>
+          </div>
+
+          {/* Center: Free Delivery Text */}
+          <div className="w-full md:w-auto text-center font-semibold tracking-[1.5px] uppercase text-xs sm:text-sm">
+            FREE DELIVERY ON ORDERS ABOVE PKR 5,000
+          </div>
+
+          {/* Right: Social Media Links */}
+          <div className="hidden md:flex items-center space-x-4">
+            <span className="text-brand-beige/70">Follow Us:</span>
+            <div className="flex items-center space-x-4">
+              {/* Instagram */}
+              <a
+                href="https://instagram.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Instagram"
+                className="hover:text-brand-gold transition-colors"
+              >
+                <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
+                  <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" />
+                </svg>
+              </a>
+              {/* Facebook */}
+              <a
+                href="https://facebook.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Facebook"
+                className="hover:text-brand-gold transition-colors"
+              >
+                <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
+                  <path d="M9 8h-3v4h3v12h5v-12h3.642l.358-4h-4v-1.667c0-.955.192-1.333 1.115-1.333h2.885v-5h-3.808c-3.596 0-5.192 1.583-5.192 4.615v3.385z" />
+                </svg>
+              </a>
+              {/* TikTok */}
+              <a
+                href="https://tiktok.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="TikTok"
+                className="hover:text-brand-gold transition-colors"
+              >
+                <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
+                  <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z" />
+                </svg>
+              </a>
+              {/* YouTube */}
+              <a
+                href="https://youtube.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="YouTube"
+                className="hover:text-brand-gold transition-colors"
+              >
+                <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
+                  <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
+                </svg>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
       <nav
         className={cn(
-          'fixed top-0 left-0 w-full z-40 transition-all duration-300 ease-in-out px-6 md:px-14',
-          isScrolled
-            ? 'bg-brand-green-dark/95 backdrop-blur-md shadow-soft-md'
-            : 'bg-brand-green-dark backdrop-blur-sm'
-        )}
-      >
+            'w-full transition-all duration-300 ease-in-out px-6 md:px-14',
+            isScrolled
+              ? 'bg-brand-green-dark/95 backdrop-blur-md shadow-soft-md'
+              : 'bg-brand-green-dark backdrop-blur-sm'
+          )}
+        >
         <div className="max-w-7xl mx-auto h-[91px] flex items-center justify-between">
           {/* Left: Brand Logo Image */}
           <Link href="/" className="relative flex items-center justify-center transition-transform hover:scale-105">
@@ -149,7 +234,7 @@ export default function Navbar() {
                       />
                       <button
                         type="submit"
-                        className="px-3 py-2 bg-brand-gold text-brand-green-dark text-[10px] uppercase tracking-wider font-bold rounded-sm hover:bg-brand-gold-light transition-colors shrink-0 cursor-pointer font-sans"
+                        className="px-3 py-2 bg-brand-gold text-brand-green-dark text-[12px] uppercase tracking-wider font-bold rounded-sm hover:bg-brand-gold-light transition-colors shrink-0 cursor-pointer font-sans"
                       >
                         Go
                       </button>
@@ -166,7 +251,7 @@ export default function Navbar() {
             >
               <ShoppingBag size={20} strokeWidth={1.5} />
               {cartCount > 0 && (
-                <span className="absolute -top-1.5 -right-2 bg-brand-gold text-brand-green-dark text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold">
+                <span className="absolute -top-1.5 -right-2 bg-brand-gold text-brand-green-dark text-[12px] w-4 h-4 rounded-full flex items-center justify-center font-bold">
                   {cartCount}
                 </span>
               )}
@@ -190,6 +275,7 @@ export default function Navbar() {
           </div>
         </div>
       </nav>
+      </header>
 
       {/* ─── Modern Slide-out Mobile Navigation Drawer (Dark Theme) ───────── */}
       <AnimatePresence>
@@ -239,7 +325,7 @@ export default function Navbar() {
                   />
                   <button
                     type="submit"
-                    className="px-4 py-3 bg-brand-gold text-brand-green-dark text-[10px] uppercase tracking-wider font-semibold rounded-xs hover:bg-brand-gold-light transition-colors shrink-0 cursor-pointer font-sans"
+                    className="px-4 py-3 bg-brand-gold text-brand-green-dark text-[12px] uppercase tracking-wider font-semibold rounded-xs hover:bg-brand-gold-light transition-colors shrink-0 cursor-pointer font-sans"
                   >
                     Search
                   </button>
@@ -293,7 +379,7 @@ export default function Navbar() {
                   onClick={() => setIsMobileMenuOpen(false)}
                   className="w-full py-3 px-4 bg-brand-green border border-brand-gold/20 rounded-xs flex items-center justify-between text-brand-offwhite hover:border-brand-gold transition-colors active:scale-95"
                 >
-                  <span className="uppercase tracking-[0.2em] font-semibold text-[10px] text-brand-gold">
+                  <span className="uppercase tracking-[0.2em] font-semibold text-[12px] text-brand-gold">
                     Shopping Bag
                   </span>
                   <span className="font-semibold text-[#F5F5F0]">
@@ -301,7 +387,7 @@ export default function Navbar() {
                   </span>
                 </Link>
 
-                <p className="text-[10px] uppercase tracking-[0.25em] text-brand-beige/50 text-center pt-2 font-medium">
+                <p className="text-[12px] uppercase tracking-[0.25em] text-brand-beige/50 text-center pt-2 font-medium">
                   Decades by Gul&apos;s &bull; Wear Your Era
                 </p>
               </motion.div>

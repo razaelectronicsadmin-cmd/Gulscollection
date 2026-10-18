@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'motion/react';
-import { ShoppingBag, Minus, Plus, ChevronDown, ArrowLeft } from 'lucide-react';
+import { ShoppingBag, Minus, Plus, ChevronDown, ArrowLeft, ArrowRight, CheckCircle2 } from 'lucide-react';
 import { useStore } from '@/context/StoreContext';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/Button';
@@ -33,6 +33,7 @@ export default function ProductDetailView({ product }: { product: FormattedProdu
 
   const [quantity, setQuantity] = useState(1);
   const [activeAccordion, setActiveAccordion] = useState<string | null>('notes');
+  const [isAddedToCart, setIsAddedToCart] = useState(false);
 
   // Fallback state is handled by the parent page component (ProductDetailsPage), 
   // but keeping a safety check here just in case.
@@ -44,6 +45,11 @@ export default function ProductDetailView({ product }: { product: FormattedProdu
       price: product.price,
       image: product.image,
     });
+    setIsAddedToCart(true);
+  };
+
+  const handleViewCart = () => {
+    router.push('/cart');
   };
 
   const toggleAccordion = (section: string) => {
@@ -56,13 +62,13 @@ export default function ProductDetailView({ product }: { product: FormattedProdu
       <div className="mb-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <button
           onClick={() => router.back()}
-          className="flex items-center space-x-2 text-[#8C7A5B] hover:text-[#183629] transition-colors text-[10px] uppercase tracking-[0.2em] font-bold"
+          className="flex items-center space-x-2 text-[#8C7A5B] hover:text-[#183629] transition-colors text-[12px] uppercase tracking-[0.2em] font-bold cursor-pointer"
         >
           <ArrowLeft size={14} />
           <span>Back to Collection</span>
         </button>
 
-        <nav className="hidden md:flex items-center space-x-3 text-[10px] uppercase tracking-[0.2em] font-medium text-[#8C7A5B]">
+        <nav className="hidden md:flex items-center space-x-3 text-[12px] uppercase tracking-[0.2em] font-medium text-[#8C7A5B]">
           <Link href="/" className="hover:text-[#183629] transition-colors">Home</Link>
           <span>/</span>
           <Link href="/fragrance" className="hover:text-[#183629] transition-colors">Fragrance</Link>
@@ -81,7 +87,7 @@ export default function ProductDetailView({ product }: { product: FormattedProdu
         >
           <div className="relative aspect-[4/5] w-full bg-white shadow-soft-elevated rounded-sm overflow-hidden border border-[#C9A66B]/20">
             {product.isSpecialEdition && (
-              <div className="absolute top-6 right-6 z-20 bg-[#183629] text-[#F3E9D7] text-[10px] uppercase tracking-[0.2em] font-bold px-4 py-2 rounded-sm shadow-md border border-[#C9A66B]/30">
+              <div className="absolute top-6 right-6 z-20 bg-[#183629] text-[#F3E9D7] text-[12px] uppercase tracking-[0.2em] font-bold px-4 py-2 rounded-sm shadow-md border border-[#C9A66B]/30">
                 {product.specialEditionType ? `${product.specialEditionType} Special Edition` : 'Special Edition'}
               </div>
             )}
@@ -118,33 +124,68 @@ export default function ProductDetailView({ product }: { product: FormattedProdu
             {product.description}
           </p>
 
-          {/* Quantity & Add to Cart */}
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 mb-12">
+          {/* Quantity & Add to Cart/View Cart Area */}
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 mb-12 overflow-hidden">
             <div className="flex items-center justify-between border border-[#C9A66B]/40 rounded-sm w-full sm:w-1/3 px-5 py-3 bg-white">
               <button
                 onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                className="text-[#8C7A5B] hover:text-[#183629] transition-colors p-1"
+                className="text-[#8C7A5B] hover:text-[#183629] transition-colors p-1 cursor-pointer"
                 aria-label="Decrease quantity"
+                disabled={isAddedToCart}
               >
                 <Minus size={16} />
               </button>
               <span className="text-[14px] font-medium text-[#183629]">{quantity}</span>
               <button
                 onClick={() => setQuantity(quantity + 1)}
-                className="text-[#8C7A5B] hover:text-[#183629] transition-colors p-1"
+                className="text-[#8C7A5B] hover:text-[#183629] transition-colors p-1 cursor-pointer"
                 aria-label="Increase quantity"
+                disabled={isAddedToCart}
               >
                 <Plus size={16} />
               </button>
             </div>
 
-            <Button
-              onClick={handleAddToCart}
-              className="flex-1 w-full flex items-center justify-center space-x-3 bg-[#183629] text-[#F3E9D7] hover:bg-[#11261d] hover:text-[#C9A66B] transition-colors tracking-[0.15em] text-[12px] py-4 rounded-sm shadow-md"
-            >
-              <ShoppingBag size={16} />
-              <span>ADD TO CART — PKR {(product.price * quantity).toLocaleString()}</span>
-            </Button>
+            <div className="flex-1 relative w-full h-[52px]"> {/* Fixed height container for smooth sliding */}
+              <AnimatePresence initial={false} mode="wait">
+                {!isAddedToCart ? (
+                  <motion.div
+                    key="add-btn"
+                    initial={{ y: -30, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    exit={{ y: 30, opacity: 0 }}
+                    transition={{ type: "tween", duration: 0.3 }}
+                    className="absolute inset-0"
+                  >
+                    <Button
+                      onClick={handleAddToCart}
+                      className="w-full h-full flex items-center justify-center space-x-3 bg-[#183629] text-[#F3E9D7] hover:bg-[#11261d] hover:text-[#C9A66B] transition-colors tracking-[0.15em] text-[12px] rounded-sm shadow-md"
+                    >
+                      <ShoppingBag size={16} />
+                      <span>ADD TO CART — PKR {(product.price * quantity).toLocaleString()}</span>
+                    </Button>
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key="view-btn"
+                    initial={{ y: -30, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    exit={{ y: 30, opacity: 0 }}
+                    transition={{ type: "tween", duration: 0.3 }}
+                    className="absolute inset-0"
+                  >
+                    <Button
+                      onClick={handleViewCart}
+                      className="w-full h-full flex items-center justify-center space-x-3 bg-[#C9A66B] text-[#183629] hover:bg-[#b08e54] transition-colors tracking-[0.15em] text-[12px] rounded-sm shadow-md"
+                    >
+                      <CheckCircle2 size={16} />
+                      <span>VIEW CART</span>
+                      <ArrowRight size={14} />
+                    </Button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
           </div>
 
           {/* Accordions */}
@@ -155,7 +196,7 @@ export default function ProductDetailView({ product }: { product: FormattedProdu
               <div className="border-b border-[#C9A66B]/30">
                 <button
                   onClick={() => toggleAccordion('notes')}
-                  className="w-full py-5 flex items-center justify-between text-left focus:outline-none group"
+                  className="w-full py-5 flex items-center justify-between text-left focus:outline-none group cursor-pointer"
                 >
                   <span className="text-[11px] uppercase tracking-[0.2em] font-semibold text-[#183629] group-hover:text-[#C9A66B] transition-colors">
                     Fragrance Notes
@@ -179,19 +220,19 @@ export default function ProductDetailView({ product }: { product: FormattedProdu
                       <div className="pb-6 pt-2 space-y-5">
                         {product.topNote && (
                           <div>
-                            <p className="text-[10px] uppercase tracking-[0.2em] text-[#C9A66B] font-bold mb-1.5">Top Notes</p>
+                            <p className="text-[12px] uppercase tracking-[0.2em] text-[#C9A66B] font-bold mb-1.5">Top Notes</p>
                             <p className="text-[13px] font-sans text-[#29251D]">{product.topNote}</p>
                           </div>
                         )}
                         {product.heartNote && (
                           <div>
-                            <p className="text-[10px] uppercase tracking-[0.2em] text-[#C9A66B] font-bold mb-1.5">Heart Notes</p>
+                            <p className="text-[12px] uppercase tracking-[0.2em] text-[#C9A66B] font-bold mb-1.5">Heart Notes</p>
                             <p className="text-[13px] font-sans text-[#29251D]">{product.heartNote}</p>
                           </div>
                         )}
                         {product.baseNote && (
                           <div>
-                            <p className="text-[10px] uppercase tracking-[0.2em] text-[#C9A66B] font-bold mb-1.5">Base Notes</p>
+                            <p className="text-[12px] uppercase tracking-[0.2em] text-[#C9A66B] font-bold mb-1.5">Base Notes</p>
                             <p className="text-[13px] font-sans text-[#29251D]">{product.baseNote}</p>
                           </div>
                         )}
@@ -207,7 +248,7 @@ export default function ProductDetailView({ product }: { product: FormattedProdu
               <div className="border-b border-[#C9A66B]/30">
                 <button
                   onClick={() => toggleAccordion('ingredients')}
-                  className="w-full py-5 flex items-center justify-between text-left focus:outline-none group"
+                  className="w-full py-5 flex items-center justify-between text-left focus:outline-none group cursor-pointer"
                 >
                   <span className="text-[11px] uppercase tracking-[0.2em] font-semibold text-[#183629] group-hover:text-[#C9A66B] transition-colors">
                     Ingredients
@@ -243,7 +284,7 @@ export default function ProductDetailView({ product }: { product: FormattedProdu
             <div className="border-b border-[#C9A66B]/30">
               <button
                 onClick={() => toggleAccordion('delivery')}
-                className="w-full py-5 flex items-center justify-between text-left focus:outline-none group"
+                className="w-full py-5 flex items-center justify-between text-left focus:outline-none group cursor-pointer"
               >
                 <span className="text-[11px] uppercase tracking-[0.2em] font-semibold text-[#183629] group-hover:text-[#C9A66B] transition-colors">
                   Shipping & Returns
@@ -266,7 +307,7 @@ export default function ProductDetailView({ product }: { product: FormattedProdu
                   >
                     <div className="pb-6 pt-2">
                       <p className="text-[13px] font-sans text-[#29251D]/80 leading-relaxed">
-                        Same-day and next-day delivery available exclusively across Karachi[cite: 31]. Due to the personal nature of fragrances, we currently do not accept returns once the packaging has been opened.
+                        Same-day and next-day delivery available exclusively across Karachi[cite: 27]. Due to the personal nature of fragrances, we currently do not accept returns once the packaging has been opened.
                       </p>
                     </div>
                   </motion.div>

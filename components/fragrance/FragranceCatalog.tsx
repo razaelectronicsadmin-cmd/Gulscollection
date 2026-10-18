@@ -212,7 +212,7 @@ export default function FragranceCatalog({
         {hasActiveFilters && (
           <div className="mt-4 pt-4 border-t border-[#C9A66B]/20 flex flex-wrap items-center justify-between gap-3">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="text-[10px] uppercase tracking-[0.2em] text-[#8C7A5B] font-semibold font-sans">
+              <span className="text-[12px] uppercase tracking-[0.2em] text-[#8C7A5B] font-semibold font-sans">
                 Filters:
               </span>
 

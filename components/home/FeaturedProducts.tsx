@@ -26,7 +26,7 @@
 //       <div className="max-w-7xl mx-auto">
 //         {/* Section Header */}
 //         <div className="text-center max-w-2xl mx-auto mb-16 md:mb-20">
-//           <span className="text-[10px] md:text-[11px] font-sans uppercase tracking-[0.3em] text-brand-muted mb-3 inline-block">
+//           <span className="text-[12px] md:text-[11px] font-sans uppercase tracking-[0.3em] text-brand-muted mb-3 inline-block">
 //             Artisanal Selection
 //           </span>
 //           <h2 className="font-serif text-3xl sm:text-4xl md:text-5xl text-brand-black tracking-tight">

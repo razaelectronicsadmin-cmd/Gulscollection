@@ -69,7 +69,7 @@ export default async function CollectionsShowcase() {
           <div key={category.id} id={`category-${category.id}`} className="w-full max-w-6xl mx-auto mb-20 scroll-mt-24">
             <div className="border-b border-[#D8C6A5]/50 pb-2 mb-8 flex flex-col sm:flex-row sm:items-end gap-2 sm:gap-4">
               <h3 className="font-serif text-[24px] font-bold text-[#C9A66B] uppercase">{category.name}</h3>
-              <span className="font-sans text-[10px] tracking-[0.1em] text-[#8C7A5B] uppercase mb-1">
+              <span className="font-sans text-[12px] tracking-[0.1em] text-[#8C7A5B] uppercase mb-1">
                 {category.slug.replace(/-/g, ' ')}
               </span>
             </div>

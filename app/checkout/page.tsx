@@ -153,7 +153,7 @@ export default function CheckoutPage() {
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <Link
             href="/cart"
-            className="inline-flex items-center gap-2 text-[10px] uppercase tracking-widest font-semibold text-[#8C7A5B] hover:text-[#183629] transition-colors font-sans"
+            className="inline-flex items-center gap-2 text-[12px] uppercase tracking-widest font-semibold text-[#8C7A5B] hover:text-[#183629] transition-colors font-sans"
           >
             <ArrowLeft size={14} />
             <span className="hidden sm:inline">Return to Bag</span>
@@ -163,7 +163,7 @@ export default function CheckoutPage() {
             Gul&apos;s
           </Link>
 
-          <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-widest text-[#8C7A5B] font-sans font-medium">
+          <div className="flex items-center gap-1.5 text-[12px] uppercase tracking-widest text-[#8C7A5B] font-sans font-medium">
             <Lock size={12} className="text-[#C9A66B]" />
             <span className="hidden sm:inline">Secure Checkout</span>
           </div>
@@ -193,7 +193,7 @@ export default function CheckoutPage() {
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-[10px] uppercase tracking-[0.2em] text-[#183629] font-sans font-semibold mb-1">
+                  <label className="block text-[12px] uppercase tracking-[0.2em] text-[#183629] font-sans font-semibold mb-1">
                     Email Address *
                   </label>
                   <input
@@ -207,7 +207,7 @@ export default function CheckoutPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-[10px] uppercase tracking-[0.2em] text-[#183629] font-sans font-semibold mb-1">
+                  <label className="block text-[12px] uppercase tracking-[0.2em] text-[#183629] font-sans font-semibold mb-1">
                     Phone Number *
                   </label>
                   <input
@@ -235,7 +235,7 @@ export default function CheckoutPage() {
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-6">
                 <div>
-                  <label className="block text-[10px] uppercase tracking-[0.2em] text-[#183629] font-sans font-semibold mb-1">
+                  <label className="block text-[12px] uppercase tracking-[0.2em] text-[#183629] font-sans font-semibold mb-1">
                     First Name *
                   </label>
                   <input
@@ -249,7 +249,7 @@ export default function CheckoutPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-[10px] uppercase tracking-[0.2em] text-[#183629] font-sans font-semibold mb-1">
+                  <label className="block text-[12px] uppercase tracking-[0.2em] text-[#183629] font-sans font-semibold mb-1">
                     Last Name *
                   </label>
                   <input
@@ -264,7 +264,7 @@ export default function CheckoutPage() {
                 </div>
               </div>
               <div className="mb-6">
-                <label className="block text-[10px] uppercase tracking-[0.2em] text-[#183629] font-sans font-semibold mb-1">
+                <label className="block text-[12px] uppercase tracking-[0.2em] text-[#183629] font-sans font-semibold mb-1">
                   Complete Street Address *
                 </label>
                 <input
@@ -279,7 +279,7 @@ export default function CheckoutPage() {
               </div>
               <div className="grid grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-[10px] uppercase tracking-[0.2em] text-[#183629] font-sans font-semibold mb-1">
+                  <label className="block text-[12px] uppercase tracking-[0.2em] text-[#183629] font-sans font-semibold mb-1">
                     City *
                   </label>
                   <input
@@ -293,7 +293,7 @@ export default function CheckoutPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-[10px] uppercase tracking-[0.2em] text-[#183629] font-sans font-semibold mb-1">
+                  <label className="block text-[12px] uppercase tracking-[0.2em] text-[#183629] font-sans font-semibold mb-1">
                     Postal Code
                   </label>
                   <input
@@ -322,7 +322,7 @@ export default function CheckoutPage() {
                 <span className="font-semibold text-[#183629] uppercase tracking-wider text-[11px]">
                   Cash on Delivery / Direct Card Processing
                 </span>
-                <span className="text-[10px] uppercase tracking-wider text-[#C9A66B] font-bold flex items-center gap-1.5">
+                <span className="text-[12px] uppercase tracking-wider text-[#C9A66B] font-bold flex items-center gap-1.5">
                   <ShieldCheck size={14} /> Verified Safe
                 </span>
               </div>
@@ -395,7 +395,7 @@ export default function CheckoutPage() {
               </div>
               <div className="flex justify-between items-center text-[#8C7A5B]">
                 <span>Delivery & Insurance</span>
-                <span className="text-[#C9A66B] font-semibold uppercase tracking-wider text-[10px]">
+                <span className="text-[#C9A66B] font-semibold uppercase tracking-wider text-[12px]">
                   Complimentary
                 </span>
               </div>

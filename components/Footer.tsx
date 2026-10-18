@@ -22,6 +22,9 @@ export default function Footer() {
 
         {/* Center: Navigation Links */}
         <nav className="flex flex-wrap justify-center gap-6 md:gap-10 text-[11px] md:text-[12px] tracking-[0.2em] text-[#C9A66B] uppercase font-medium">
+          <Link href="/about" className="hover:text-[#F3E9D7] transition-colors duration-300">
+            About
+          </Link>  
           <Link href="/fragrance" className="hover:text-[#F3E9D7] transition-colors duration-300">
             Fragrance
           </Link>          

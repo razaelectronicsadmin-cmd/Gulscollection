@@ -22,7 +22,7 @@ export default function CartPage() {
         <div className="max-w-7xl mx-auto">
           {/* Header */}
           <div className="mb-12">
-            <span className="text-[10px] md:text-[11px] font-sans uppercase tracking-[0.3em] text-[#C9A66B] mb-3 inline-block font-semibold">
+            <span className="text-[12px] md:text-[11px] font-sans uppercase tracking-[0.3em] text-[#C9A66B] mb-3 inline-block font-semibold">
               Your Selection
             </span>
             <h1 className="font-serif text-4xl sm:text-5xl md:text-[56px] text-[#183629] tracking-tight">
@@ -64,7 +64,7 @@ export default function CartPage() {
                               <h3 className="font-serif text-lg sm:text-xl text-[#183629] font-bold group-hover:text-[#C9A66B] transition-colors uppercase tracking-wide">
                                 {item.name}
                               </h3>
-                              <p className="text-[10px] uppercase tracking-widest text-[#8C7A5B] font-sans mt-1">
+                              <p className="text-[12px] uppercase tracking-widest text-[#8C7A5B] font-sans mt-1">
                                 Extrait de Parfum &bull; 50ml
                               </p>
                             </div>
@@ -145,7 +145,7 @@ export default function CartPage() {
 
                     <div className="flex justify-between items-center text-[#8C7A5B]">
                       <span>Shipping & Packaging</span>
-                      <span className="text-[#C9A66B] font-semibold uppercase tracking-wider text-[10px]">
+                      <span className="text-[#C9A66B] font-semibold uppercase tracking-wider text-[12px]">
                         Complimentary
                       </span>
                     </div>
@@ -166,7 +166,7 @@ export default function CartPage() {
                     
                   </Button>
 
-                  <div className="mt-6 pt-6 border-t border-[#C9A66B]/20 flex items-center justify-center gap-2 text-[10px] uppercase tracking-wider text-[#8C7A5B] font-sans text-center">
+                  <div className="mt-6 pt-6 border-t border-[#C9A66B]/20 flex items-center justify-center gap-2 text-[12px] uppercase tracking-wider text-[#8C7A5B] font-sans text-center">
                     <ShieldCheck size={16} className="text-[#C9A66B]" />
                     <span>Complimentary signature presentation box</span>
                   </div>

@@ -41,7 +41,7 @@ export default function ShopHero({ signatureEditions, activeCategory }: ShopHero
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full border border-brand-black/10 bg-brand-offwhite text-[10px] font-sans tracking-[0.25em] uppercase text-brand-charcoal mb-4"
+          className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full border border-brand-black/10 bg-brand-offwhite text-[12px] font-sans tracking-[0.25em] uppercase text-brand-charcoal mb-4"
         >
           <span className="w-1.5 h-1.5 rounded-full bg-brand-green" />
           The Fragrance House

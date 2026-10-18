@@ -504,7 +504,7 @@ export default function ProductsPage() {
                             <div className="font-medium text-gray-900 flex items-center gap-2">
                               {p.name}
                               {p.isSpecialEdition && (
-                                <span className="text-[10px] font-bold uppercase tracking-wider bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded">
+                                <span className="text-[12px] font-bold uppercase tracking-wider bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded">
                                   Special
                                 </span>
                               )}

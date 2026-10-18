@@ -50,7 +50,7 @@ export default function Demographics() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
-            className="text-[10px] md:text-[11px] font-sans uppercase tracking-[0.3em] text-brand-muted mb-3 inline-block"
+            className="text-[12px] md:text-[11px] font-sans uppercase tracking-[0.3em] text-brand-muted mb-3 inline-block"
           >
             Curated For You
           </motion.span>
@@ -97,7 +97,7 @@ export default function Demographics() {
 
                   {/* Top Demographic Header */}
                   <div className="relative z-10 p-8 flex items-center justify-between">
-                    <span className="text-[10px] font-sans uppercase tracking-[0.25em] text-white/80 bg-black/40 backdrop-blur-md px-3 py-1 rounded-full border border-white/20">
+                    <span className="text-[12px] font-sans uppercase tracking-[0.25em] text-white/80 bg-black/40 backdrop-blur-md px-3 py-1 rounded-full border border-white/20">
                       {item.subtitle}
                     </span>
                     <div className="w-8 h-8 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white group-hover:bg-brand-green group-hover:text-white transition-all">

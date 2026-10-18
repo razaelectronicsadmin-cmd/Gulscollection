@@ -27,7 +27,7 @@
 //         {/* Section Header */}
 //         <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6">
 //           <div>
-//             <span className="text-[10px] md:text-[11px] font-sans uppercase tracking-[0.3em] text-brand-muted mb-3 inline-block">
+//             <span className="text-[12px] md:text-[11px] font-sans uppercase tracking-[0.3em] text-brand-muted mb-3 inline-block">
 //               Latest Additions
 //             </span>
 //             <h2 className="font-serif text-3xl sm:text-4xl md:text-5xl text-brand-black tracking-tight">

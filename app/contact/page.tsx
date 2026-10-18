@@ -52,7 +52,7 @@ export default function ContactPage() {
               className="lg:col-span-5 space-y-10 pr-0 lg:pr-8"
             >
               <div>
-                <span className="text-[10px] uppercase tracking-[0.25em] text-[#C9A66B] font-semibold block mb-3">
+                <span className="text-[12px] uppercase tracking-[0.25em] text-[#C9A66B] font-semibold block mb-3">
                   Atelier Concierge
                 </span>
                 <h2 className="font-serif text-2xl sm:text-3xl text-[#183629] mb-4">
@@ -216,7 +216,7 @@ export default function ContactPage() {
                   <div className="pt-4 justify-center align-center  flex">
                     <Button
                       type="submit"                 
-                        className="px-3 py-2 bg-brand-gold text-brand-green-dark text-[10px] uppercase tracking-wider font-bold rounded-sm hover:bg-brand-gold-light transition-colors shrink-0 cursor-pointer font-sans"
+                        className="px-3 py-2 bg-brand-gold text-brand-green-dark text-[12px] uppercase tracking-wider font-bold rounded-sm hover:bg-brand-gold-light transition-colors shrink-0 cursor-pointer font-sans"
                     >
                       SEND MESSAGE
                     </Button>
