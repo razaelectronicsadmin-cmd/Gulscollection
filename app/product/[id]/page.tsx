@@ -12,6 +12,34 @@ interface ProductPageProps {
 export default async function ProductDetailsPage({ params }: ProductPageProps) {
   const { id } = await params;
   let formattedProduct: FormattedProduct | null = null;
+  let categoryId: number | undefined = undefined;
+
+  // Helper to parse images
+  const parseImages = (imagesJson: string | null, fallback: string | null) => {
+    if (imagesJson) {
+      try {
+        const parsed = JSON.parse(imagesJson);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed as string[];
+      } catch {}
+    }
+    return fallback ? [fallback] : [];
+  };
+
+  const now = new Date();
+  const [deliverySetting, activePromotions] = await Promise.all([
+    prisma.deliverySetting.findUnique({ where: { id: 1 } }),
+    prisma.promotionalDiscount.findMany({
+      where: {
+        isActive: true,
+        OR: [
+          { startDate: null, endDate: null },
+          { startDate: { lte: now }, endDate: { gte: now } },
+          { startDate: { lte: now }, endDate: null },
+          { startDate: null, endDate: { gte: now } },
+        ],
+      },
+    }),
+  ]);
 
   // 1. Try fetching by numeric ID from database
   const numericId = parseInt(id);
@@ -22,13 +50,18 @@ export default async function ProductDetailsPage({ params }: ProductPageProps) {
     });
 
     if (dbProduct) {
+      categoryId = dbProduct.categoryId;
+      const parsedImgs = parseImages(dbProduct.images, dbProduct.imageURL);
       formattedProduct = {
         id: dbProduct.id,
         name: dbProduct.name,
         brand: dbProduct.brand,
         description: dbProduct.description,
         price: Number(dbProduct.price),
-        image: dbProduct.imageURL || '/images/placeholder-image.jpg',
+        image: parsedImgs[0] || dbProduct.imageURL || '/images/placeholder-image.jpg',
+        images: parsedImgs,
+        department: dbProduct.department || 'Fragrance',
+        stockQuantity: dbProduct.stockQuantity,
         category: dbProduct.category.slug,
         categoryTitle: dbProduct.category.name,
         topNote: dbProduct.topNote,
@@ -55,13 +88,18 @@ export default async function ProductDetailsPage({ params }: ProductPageProps) {
     });
 
     if (dbProductByName) {
+      categoryId = dbProductByName.categoryId;
+      const parsedImgs = parseImages(dbProductByName.images, dbProductByName.imageURL);
       formattedProduct = {
         id: dbProductByName.id,
         name: dbProductByName.name,
         brand: dbProductByName.brand,
         description: dbProductByName.description,
         price: Number(dbProductByName.price),
-        image: dbProductByName.imageURL || '/images/placeholder-image.jpg',
+        image: parsedImgs[0] || dbProductByName.imageURL || '/images/placeholder-image.jpg',
+        images: parsedImgs,
+        department: dbProductByName.department || 'Fragrance',
+        stockQuantity: dbProductByName.stockQuantity,
         category: dbProductByName.category.slug,
         categoryTitle: dbProductByName.category.name,
         topNote: dbProductByName.topNote,
@@ -83,6 +121,9 @@ export default async function ProductDetailsPage({ params }: ProductPageProps) {
           description: hardcoded.description,
           price: hardcoded.price,
           image: hardcoded.image,
+          images: [hardcoded.image],
+          department: 'Fragrance',
+          stockQuantity: 25,
           category: hardcoded.category,
           categoryTitle: coll ? coll.title : hardcoded.category,
           topNote: hardcoded.topNote,
@@ -96,13 +137,70 @@ export default async function ProductDetailsPage({ params }: ProductPageProps) {
     }
   }
 
+  // Calculate dynamic promotions and delivery settings for product
+  if (formattedProduct) {
+    const originalPrice = formattedProduct.price;
+    const pId = typeof formattedProduct.id === 'number' ? formattedProduct.id : undefined;
+
+    const matchedPromo = activePromotions.find((promo) => {
+      if (pId !== undefined && promo.targetType === 'PRODUCT') return promo.targetId === pId;
+      if (categoryId !== undefined && promo.targetType === 'CATEGORY') return promo.targetId === categoryId;
+      if (promo.targetType === 'STOREWIDE') return true;
+      return false;
+    });
+
+    if (matchedPromo) {
+      const discountVal = Number(matchedPromo.discountValue);
+      let discountedPrice = originalPrice;
+      let badge = '';
+      if (matchedPromo.discountType === 'PERCENTAGE') {
+        discountedPrice = Math.round(originalPrice * (1 - discountVal / 100));
+        badge = `${discountVal}% OFF`;
+      } else if (matchedPromo.discountType === 'FIXED') {
+        discountedPrice = Math.max(0, originalPrice - discountVal);
+        badge = `PKR ${discountVal} OFF`;
+      } else if (matchedPromo.discountType === 'FREE_SHIPPING') {
+        badge = 'FREE SHIPPING';
+      }
+      formattedProduct.promotion = {
+        title: matchedPromo.name,
+        discountType: matchedPromo.discountType,
+        discountValue: discountVal,
+        discountedPrice,
+        badge,
+      };
+    }
+
+    if (deliverySetting) {
+      let cities: string[] = [];
+      if (deliverySetting.cityRules) {
+        try {
+          const rules = JSON.parse(deliverySetting.cityRules);
+          if (Array.isArray(rules)) {
+            cities = rules
+              .filter((r: { city?: string; isFree?: boolean; fee?: number }) => r.isFree || Number(r.fee) === 0)
+              .map((r: { city: string }) => r.city);
+          }
+        } catch {
+          cities = ['Karachi'];
+        }
+      }
+      formattedProduct.deliveryInfo = {
+        standardDeliveryFee: Number(deliverySetting.standardFee),
+        freeDeliveryMin: Number(deliverySetting.freeDeliveryMin),
+        isFreeDeliveryActive: deliverySetting.isFreeDeliveryActive,
+        freeDeliveryCities: cities,
+      };
+    }
+  }
+
   return (
     <main className="min-h-screen flex flex-col bg-[#F7F7F5] text-[#29251D] selection:bg-[#C9A66B]/30 selection:text-[#183629]">
       <Navbar />
       
       <div className="flex-grow pt-[90px]">
         {formattedProduct ? (
-          <ProductDetailView product={formattedProduct} />
+          <ProductDetailView key={formattedProduct.id} product={formattedProduct} />
         ) : (
           /* --- Luxury Empty State (Not Found) --- */
           <div className="min-h-[60vh] flex flex-col items-center justify-center px-6 text-center">

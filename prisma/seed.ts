@@ -21,14 +21,16 @@ async function main() {
   })
   console.log('Admin user ready:', admin.email)
 
-  // 2. Create Categories: 4 Signature Editions + 3 Standard Demographics
+  // 2. Create Categories: Fragrance, Leather, Essentials
   const categoriesData = [
+    // Fragrance
     {
       name: 'Masculine Energy',
       slug: 'masculine-energy',
       image: '/images/gen-x.jpeg',
       isActive: true,
       isSignatureEdition: true,
+      department: 'Fragrance',
     },
     {
       name: 'Pour Elle',
@@ -36,6 +38,7 @@ async function main() {
       image: '/images/bring-her.jpeg',
       isActive: true,
       isSignatureEdition: true,
+      department: 'Fragrance',
     },
     {
       name: 'N°01 - For All',
@@ -43,6 +46,7 @@ async function main() {
       image: '/images/after-5.jpeg',
       isActive: true,
       isSignatureEdition: true,
+      department: 'Fragrance',
     },
     {
       name: 'Arabesques',
@@ -50,6 +54,7 @@ async function main() {
       image: '/images/syfar.jpeg',
       isActive: true,
       isSignatureEdition: true,
+      department: 'Fragrance',
     },
     {
       name: 'Men',
@@ -57,6 +62,7 @@ async function main() {
       image: 'https://images.unsplash.com/photo-1523293182086-7651a899d37f?q=80&w=1000&auto=format&fit=crop',
       isActive: true,
       isSignatureEdition: false,
+      department: 'Fragrance',
     },
     {
       name: 'Women',
@@ -64,6 +70,7 @@ async function main() {
       image: 'https://images.unsplash.com/photo-1515377905703-c4788e51af15?q=80&w=1000&auto=format&fit=crop',
       isActive: true,
       isSignatureEdition: false,
+      department: 'Fragrance',
     },
     {
       name: 'Unisex',
@@ -71,6 +78,73 @@ async function main() {
       image: 'https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?q=80&w=1000&auto=format&fit=crop',
       isActive: true,
       isSignatureEdition: false,
+      department: 'Fragrance',
+    },
+    // Leather
+    {
+      name: 'Wallets & Cardholders',
+      slug: 'wallets-cardholders',
+      image: 'https://images.unsplash.com/photo-1627123424574-724758594e93?q=80&w=1000&auto=format&fit=crop',
+      isActive: true,
+      isSignatureEdition: false,
+      department: 'Leather',
+    },
+    {
+      name: 'Bags & Briefcases',
+      slug: 'bags-briefcases',
+      image: 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?q=80&w=1000&auto=format&fit=crop',
+      isActive: true,
+      isSignatureEdition: false,
+      department: 'Leather',
+    },
+    {
+      name: 'Belts & Straps',
+      slug: 'belts-straps',
+      image: 'https://images.unsplash.com/photo-1624222247344-550fb60583dc?q=80&w=1000&auto=format&fit=crop',
+      isActive: true,
+      isSignatureEdition: false,
+      department: 'Leather',
+    },
+    {
+      name: 'Travel Goods',
+      slug: 'travel-goods',
+      image: 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?q=80&w=1000&auto=format&fit=crop',
+      isActive: true,
+      isSignatureEdition: false,
+      department: 'Leather',
+    },
+    // Essentials
+    {
+      name: 'Scented Candles',
+      slug: 'scented-candles',
+      image: 'https://images.unsplash.com/photo-1603006905003-be475563bc59?q=80&w=1000&auto=format&fit=crop',
+      isActive: true,
+      isSignatureEdition: false,
+      department: 'Essentials',
+    },
+    {
+      name: 'Reed Diffusers',
+      slug: 'reed-diffusers',
+      image: 'https://images.unsplash.com/photo-1608571423902-eed4a5ad8108?q=80&w=1000&auto=format&fit=crop',
+      isActive: true,
+      isSignatureEdition: false,
+      department: 'Essentials',
+    },
+    {
+      name: 'Tumblers & Travel Mugs',
+      slug: 'tumblers-mugs',
+      image: 'https://images.unsplash.com/photo-1517256064527-09c73fc73e38?q=80&w=1000&auto=format&fit=crop',
+      isActive: true,
+      isSignatureEdition: false,
+      department: 'Essentials',
+    },
+    {
+      name: 'Body Mists & Grooming',
+      slug: 'body-mists-grooming',
+      image: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?q=80&w=1000&auto=format&fit=crop',
+      isActive: true,
+      isSignatureEdition: false,
+      department: 'Essentials',
     },
   ]
 
@@ -84,11 +158,12 @@ async function main() {
         image: cat.image,
         isActive: cat.isActive,
         isSignatureEdition: cat.isSignatureEdition,
+        department: cat.department,
       },
       create: cat,
     })
     categoryMap.set(cat.slug, record.id)
-    console.log(`Category seeded: ${record.name} (#${record.id})`)
+    console.log(`Category seeded: ${record.name} (#${record.id} [${cat.department}])`)
   }
 
   // 3. Products seed data
@@ -242,6 +317,202 @@ async function main() {
       ingredients: 'Alcohol Denat., Parfum, Aqua, Alpha-Isomethyl Ionone, Limonene, Linalool, Coumarin, Eugenol.',
       isSpecialEdition: false,
       specialEditionType: null,
+      department: 'Fragrance',
+    },
+    // Leather Collection
+    {
+      name: 'Sovereign Leather Handbag',
+      brand: "Gul's Leather",
+      description: 'Handcrafted from full-grain vegetable-tanned cowhide. Features polished solid brass accents, durable protective studs, and a compartmentalized suede lining.',
+      price: 18500.00,
+      stockQuantity: 18,
+      imageURL: 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?q=80&w=1000&auto=format&fit=crop',
+      categorySlug: 'bags-briefcases',
+      topNote: null,
+      heartNote: null,
+      baseNote: null,
+      ingredients: '100% Genuine Full-Grain Leather, Solid Brass Hardware, Suede Interior.',
+      isSpecialEdition: false,
+      specialEditionType: null,
+      department: 'Leather',
+    },
+    {
+      name: 'Imperial Bifold Wallet',
+      brand: "Gul's Leather",
+      description: 'Ultra-refined silhouette featuring 8 card slots, dual banknote dividers, and military-grade RFID signal blocking. Burnished hand-painted edges.',
+      price: 4200.00,
+      stockQuantity: 40,
+      imageURL: 'https://images.unsplash.com/photo-1627123424574-724758594e93?q=80&w=1000&auto=format&fit=crop',
+      categorySlug: 'wallets-cardholders',
+      topNote: null,
+      heartNote: null,
+      baseNote: null,
+      ingredients: 'Hand-selected Napa Leather, RFID-shielding alloy lining.',
+      isSpecialEdition: false,
+      specialEditionType: null,
+      department: 'Leather',
+    },
+    {
+      name: 'Signature Full-Grain Belt',
+      brand: "Gul's Leather",
+      description: 'Reversible fine bridle leather with interchangeable satin gold and silver buckles. Double saddle-stitched for enduring elegance.',
+      price: 3800.00,
+      stockQuantity: 30,
+      imageURL: 'https://images.unsplash.com/photo-1624222247344-550fb60583dc?q=80&w=1000&auto=format&fit=crop',
+      categorySlug: 'belts-straps',
+      topNote: null,
+      heartNote: null,
+      baseNote: null,
+      ingredients: 'English Bridle Cowhide, Satin Finished Alloy Buckle.',
+      isSpecialEdition: false,
+      specialEditionType: null,
+      department: 'Leather',
+    },
+    {
+      name: 'Heritage Weekend Duffle',
+      brand: "Gul's Leather",
+      description: 'The definitive luxury travel bag. Roomy water-resistant interior with reinforced grab handles and an ergonomic padded shoulder strap.',
+      price: 24500.00,
+      stockQuantity: 12,
+      imageURL: 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?q=80&w=1000&auto=format&fit=crop',
+      categorySlug: 'travel-goods',
+      topNote: null,
+      heartNote: null,
+      baseNote: null,
+      ingredients: 'Heavy-duty vegetable tanned leather, antique brass YKK zippers.',
+      isSpecialEdition: true,
+      specialEditionType: 'Travel Special',
+      department: 'Leather',
+    },
+    {
+      name: 'Slim Minimalist Cardholder',
+      brand: "Gul's Leather",
+      description: 'Pocket-friendly luxury crafted for the modern minimalist. Accommodates up to 6 cards with a central folded cash pocket.',
+      price: 2600.00,
+      stockQuantity: 50,
+      imageURL: 'https://images.unsplash.com/photo-1606503825008-909a6184a441?q=80&w=1000&auto=format&fit=crop',
+      categorySlug: 'wallets-cardholders',
+      topNote: null,
+      heartNote: null,
+      baseNote: null,
+      ingredients: 'Drum-dyed calfskin, microfiber lining.',
+      isSpecialEdition: false,
+      specialEditionType: null,
+      department: 'Leather',
+    },
+    {
+      name: 'Executive Laptop Messenger',
+      brand: "Gul's Leather",
+      description: 'Padded internal compartment safely houses laptops up to 16". Dedicated slip pockets for notebooks, chargers, and writing instruments.',
+      price: 16500.00,
+      stockQuantity: 15,
+      imageURL: 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?q=80&w=1000&auto=format&fit=crop',
+      categorySlug: 'bags-briefcases',
+      topNote: null,
+      heartNote: null,
+      baseNote: null,
+      ingredients: 'Oiled pull-up leather, padded ballistic nylon dividers.',
+      isSpecialEdition: false,
+      specialEditionType: null,
+      department: 'Leather',
+    },
+
+    // Essentials Collection
+    {
+      name: 'Amber & Smoked Oud Candle',
+      brand: "Gul's Essentials",
+      description: 'Hand-poured pure soy wax candle infused with rich oud resin, amber crystals, and warm tonka bean. Clean, soot-free 55-hour burn time.',
+      price: 3400.00,
+      stockQuantity: 35,
+      imageURL: 'https://images.unsplash.com/photo-1603006905003-be475563bc59?q=80&w=1000&auto=format&fit=crop',
+      categorySlug: 'scented-candles',
+      topNote: 'Cardamom, Pink Pepper',
+      heartNote: 'Smoked Oud, Amber',
+      baseNote: 'Vanilla Bean, Cedarwood',
+      ingredients: '100% Organic Soy Wax, Premium Fragrance Oils, Cotton Wick, Amber Glass Tumbler.',
+      isSpecialEdition: false,
+      specialEditionType: null,
+      department: 'Essentials',
+    },
+    {
+      name: 'Royal Velvet Reed Diffuser',
+      brand: "Gul's Essentials",
+      description: 'Continuous alcohol-free flame-less scent diffusion. Premium black porous reeds steadily release a comforting atmosphere of Damask rose, sandalwood, and velvet musk.',
+      price: 4200.00,
+      stockQuantity: 28,
+      imageURL: 'https://images.unsplash.com/photo-1608571423902-eed4a5ad8108?q=80&w=1000&auto=format&fit=crop',
+      categorySlug: 'reed-diffusers',
+      topNote: 'Bergamot, Damask Rose',
+      heartNote: 'Violet, Sandalwood',
+      baseNote: 'Velvet Musk, Amber',
+      ingredients: 'Eco-solvent diffusion base, concentrated botanical perfume oils, 8 natural rattan reeds.',
+      isSpecialEdition: false,
+      specialEditionType: null,
+      department: 'Essentials',
+    },
+    {
+      name: 'Artisan Botanical Body Mist',
+      brand: "Gul's Essentials",
+      description: 'Ultra-fine hydrating all-day body and hair mist. Enriched with chamomile water and aloe leaf extract for instant refreshment.',
+      price: 2800.00,
+      stockQuantity: 45,
+      imageURL: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?q=80&w=1000&auto=format&fit=crop',
+      categorySlug: 'body-mists-grooming',
+      topNote: 'Crisp Green Apple, Mandarin',
+      heartNote: 'White Lily, Jasmine Water',
+      baseNote: 'Clean Cedar, Sheer Musk',
+      ingredients: 'Aqua, Organic Aloe Vera Extract, Chamomile Hydrosol, Parfum, Vitamin E.',
+      isSpecialEdition: false,
+      specialEditionType: null,
+      department: 'Essentials',
+    },
+    {
+      name: "Gul's Insulated Ceramic Tumbler",
+      brand: "Gul's Essentials",
+      description: 'Engineered with double-wall vacuum insulation and a non-reactive ceramic interior lining that preserves pure taste. Keeps cold for 16h and hot for 8h.',
+      price: 3500.00,
+      stockQuantity: 32,
+      imageURL: 'https://images.unsplash.com/photo-1517256064527-09c73fc73e38?q=80&w=1000&auto=format&fit=crop',
+      categorySlug: 'tumblers-mugs',
+      topNote: null,
+      heartNote: null,
+      baseNote: null,
+      ingredients: '18/8 Kitchen-grade Stainless Steel, TrueTaste Ceramic Coating, BPA-free splash lid.',
+      isSpecialEdition: false,
+      specialEditionType: null,
+      department: 'Essentials',
+    },
+    {
+      name: 'Vanilla Bourbon Soy Candle',
+      brand: "Gul's Essentials",
+      description: 'Decadent warmth for cozy evenings. Slow-burning soy blend scented with caramelized sugar, Madagascar vanilla pod, and oak-barrel bourbon notes.',
+      price: 3200.00,
+      stockQuantity: 24,
+      imageURL: 'https://images.unsplash.com/photo-1572726729207-a78d6feb18d7?q=80&w=1000&auto=format&fit=crop',
+      categorySlug: 'scented-candles',
+      topNote: 'Caramelized Sugar',
+      heartNote: 'Madagascar Vanilla Pod',
+      baseNote: 'Oak Bourbon, Warm Benzoin',
+      ingredients: '100% Soy Wax Blend, Cotton Core Wick, Heavy-base Glass.',
+      isSpecialEdition: false,
+      specialEditionType: null,
+      department: 'Essentials',
+    },
+    {
+      name: 'Linen & Room Scenting Mist',
+      brand: "Gul's Essentials",
+      description: 'Transform any living space into a sanctuary of tranquility. Safe for curtains, upholstery, and fine cotton sheets.',
+      price: 2600.00,
+      stockQuantity: 30,
+      imageURL: 'https://images.unsplash.com/photo-1617897903246-719242758050?q=80&w=1000&auto=format&fit=crop',
+      categorySlug: 'reed-diffusers',
+      topNote: 'Provence Lavender',
+      heartNote: 'White Cotton Flower',
+      baseNote: 'Powdery Cedar',
+      ingredients: 'Deionized Water, Botanical Emulsifiers, Pure Essential Oil Concentrates.',
+      isSpecialEdition: false,
+      specialEditionType: null,
+      department: 'Essentials',
     },
   ]
 
@@ -269,9 +540,10 @@ async function main() {
           ingredients: item.ingredients,
           isSpecialEdition: item.isSpecialEdition,
           specialEditionType: item.specialEditionType,
+          department: (item as any).department || 'Fragrance',
         },
       })
-      console.log(`Product created: ${item.name}`)
+      console.log(`Product created: ${item.name} [${(item as any).department || 'Fragrance'}]`)
     } else {
       await prisma.product.update({
         where: { id: existing.id },
@@ -288,9 +560,10 @@ async function main() {
           ingredients: item.ingredients,
           isSpecialEdition: item.isSpecialEdition,
           specialEditionType: item.specialEditionType,
+          department: (item as any).department || 'Fragrance',
         },
       })
-      console.log(`Product updated: ${item.name}`)
+      console.log(`Product updated: ${item.name} [${(item as any).department || 'Fragrance'}]`)
     }
   }
 
@@ -400,6 +673,114 @@ async function main() {
         },
       });
       console.log(`Order seeded: #${o.orderNumber} (${o.status})`);
+    }
+  }
+
+  // 5. Seed default AnnouncementBar (singleton, id = 1)
+  await prisma.announcementBar.upsert({
+    where: { id: 1 },
+    update: {},
+    create: {
+      id: 1,
+      isVisible: true,
+      message: 'FREE DELIVERY ON ORDERS ABOVE PKR 5,000',
+      showPhone: true,
+      phoneNumber: '0333-2265461',
+      phoneLink: 'tel:03332265461',
+      showEmail: true,
+      emailAddress: 'gulscollection@gmail.com',
+      emailLink: 'mailto:gulscollection@gmail.com',
+      showSocialIcons: true,
+      instagramUrl: 'https://instagram.com',
+      facebookUrl: 'https://facebook.com',
+      tiktokUrl: 'https://tiktok.com',
+      youtubeUrl: 'https://youtube.com',
+      bgColor: '#0b0f0e',
+      textColor: '#F5F5F0',
+      accentColor: '#C9A66B',
+      fontSize: 'sm',
+    },
+  })
+  console.log('AnnouncementBar seeded.')
+
+  // ─── 8. Seed Delivery Rules & Settings ─────────────────────────────────────
+  await prisma.deliverySetting.upsert({
+    where: { id: 1 },
+    update: {},
+    create: {
+      id: 1,
+      standardFee: 250.00,
+      freeDeliveryMin: 5000.00,
+      isFreeDeliveryActive: true,
+      cityRules: JSON.stringify([
+        { city: 'Karachi', fee: 0, isFree: true, note: 'Local Boutique Delivery' },
+        { city: 'Lahore', fee: 200, isFree: false, note: 'Special Express Rate' },
+        { city: 'Islamabad', fee: 200, isFree: false, note: 'Special Express Rate' },
+      ]),
+    },
+  })
+  console.log('DeliverySetting seeded.')
+
+  // ─── 9. Seed Marketing Discount Coupons ────────────────────────────────────
+  const sampleCoupons = [
+    {
+      code: 'WELCOME10',
+      description: '10% off your entire order (Min spend PKR 2,000)',
+      discountType: 'PERCENTAGE' as const,
+      discountValue: 10.00,
+      minOrderAmount: 2000.00,
+      maxDiscount: 1500.00,
+      usageLimit: 1000,
+      isActive: true,
+    },
+    {
+      code: 'GULS500',
+      description: 'Flat PKR 500 off on orders above PKR 4,000',
+      discountType: 'FIXED' as const,
+      discountValue: 500.00,
+      minOrderAmount: 4000.00,
+      usageLimit: 500,
+      isActive: true,
+    },
+    {
+      code: 'FREESHIP',
+      description: 'Free Shipping coupon on any order above PKR 1,500',
+      discountType: 'FREE_SHIPPING' as const,
+      discountValue: 0.00,
+      minOrderAmount: 1500.00,
+      usageLimit: 2000,
+      isActive: true,
+    },
+  ]
+
+  for (const c of sampleCoupons) {
+    await prisma.coupon.upsert({
+      where: { code: c.code },
+      update: {},
+      create: c,
+    })
+  }
+  console.log('Marketing Coupons seeded.')
+
+  // ─── 10. Seed Sample Automatic Promotional Discounts ───────────────────────
+  const pourElleCat = await prisma.category.findUnique({ where: { slug: 'pour-elle' } })
+  if (pourElleCat) {
+    const existingPromo = await prisma.promotionalDiscount.findFirst({
+      where: { name: 'Pour Elle Signature 10% Off' },
+    })
+    if (!existingPromo) {
+      await prisma.promotionalDiscount.create({
+        data: {
+          name: 'Pour Elle Signature 10% Off',
+          targetType: 'CATEGORY',
+          targetId: pourElleCat.id,
+          targetName: 'Pour Elle',
+          discountType: 'PERCENTAGE',
+          discountValue: 10.00,
+          isActive: true,
+        },
+      })
+      console.log('Sample Automatic Promotional Discount seeded.')
     }
   }
 

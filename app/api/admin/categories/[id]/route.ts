@@ -25,7 +25,7 @@ export async function PATCH(req: Request, { params }: Params) {
       return NextResponse.json({ error: parsed.error.flatten().fieldErrors }, { status: 422 });
     }
 
-    const { name, slug, image, isActive } = parsed.data;
+    const { name, slug, image, isActive, department } = parsed.data;
 
     const slugConflict = await prisma.category.findFirst({
       where: { slug, NOT: { id: categoryId } },
@@ -40,6 +40,7 @@ export async function PATCH(req: Request, { params }: Params) {
         name,
         slug,
         image: image || null,
+        department: department || 'Fragrance',
         isActive,
       },
     });

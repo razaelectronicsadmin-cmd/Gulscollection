@@ -47,6 +47,8 @@ export async function PATCH(req: Request, { params }: Params) {
     }
 
     const data = parsed.data;
+    const imagesArray = Array.isArray(data.images) ? data.images.filter(Boolean) : [];
+    const coverImage = imagesArray[0] || data.imageURL || null;
 
     const updated = await prisma.product.update({
       where: { id: productId },
@@ -57,7 +59,9 @@ export async function PATCH(req: Request, { params }: Params) {
         price: parseFloat(data.price),
         stockQuantity: parseInt(data.stockQuantity),
         categoryId: parseInt(data.categoryId),
-        imageURL: data.imageURL || null,
+        imageURL: coverImage,
+        images: imagesArray.length > 0 ? JSON.stringify(imagesArray) : coverImage ? JSON.stringify([coverImage]) : null,
+        department: data.department || 'Fragrance',
         topNote: data.topNote || null,
         heartNote: data.heartNote || null,
         baseNote: data.baseNote || null,

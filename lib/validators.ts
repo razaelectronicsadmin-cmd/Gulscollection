@@ -12,6 +12,7 @@ export const categorySchema = z.object({
     .max(80, 'Slug must be under 80 characters')
     .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'Slug must be lowercase letters, numbers, and hyphens only'),
   image: z.string().url('Must be a valid URL').optional().or(z.literal('')),
+  department: z.enum(['Fragrance', 'Leather', 'Essentials']),
   isActive: z.boolean(),
 });
 
@@ -35,6 +36,8 @@ export const productSchema = z.object({
     .min(1, 'Category is required')
     .refine((v) => !isNaN(parseInt(v)), { message: 'Invalid category' }),
   imageURL: z.string().url('Must be a valid URL').optional().or(z.literal('')),
+  images: z.array(z.string()).optional(),
+  department: z.enum(['Fragrance', 'Leather', 'Essentials']),
   topNote: z.string().max(200).optional().or(z.literal('')),
   heartNote: z.string().max(200).optional().or(z.literal('')),
   baseNote: z.string().max(200).optional().or(z.literal('')),

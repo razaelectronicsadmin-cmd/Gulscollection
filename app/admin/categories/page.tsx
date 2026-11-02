@@ -18,6 +18,7 @@ interface Category {
   slug: string;
   image: string | null;
   isActive: boolean;
+  department: string;
   _count: { products: number };
 }
 
@@ -46,6 +47,7 @@ function CategoryFormModal({ mode, category, onClose, onSuccess }: FormModalProp
       name: category?.name ?? '',
       slug: category?.slug ?? '',
       image: category?.image ?? '',
+      department: (category?.department as 'Fragrance' | 'Leather' | 'Essentials') ?? 'Fragrance',
       isActive: category?.isActive ?? true,
     },
   });
@@ -117,6 +119,20 @@ function CategoryFormModal({ mode, category, onClose, onSuccess }: FormModalProp
               className="w-full px-3 py-2.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#d4af37] focus:border-[#d4af37] outline-none transition-all"
             />
             {errors.name && <p className="mt-1 text-xs text-red-500">{errors.name.message}</p>}
+          </div>
+
+          {/* Department */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Product Line / Department</label>
+            <select
+              {...register('department')}
+              className="w-full px-3 py-2.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#d4af37] focus:border-[#d4af37] outline-none transition-all bg-white"
+            >
+              <option value="Fragrance">Fragrance</option>
+              <option value="Leather">Leather</option>
+              <option value="Essentials">Essentials</option>
+            </select>
+            {errors.department && <p className="mt-1 text-xs text-red-500">{errors.department.message}</p>}
           </div>
 
           {/* Slug */}
@@ -200,6 +216,7 @@ export default function CategoriesPage() {
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
+  const [departmentFilter, setDepartmentFilter] = useState<'all' | 'Fragrance' | 'Leather' | 'Essentials'>('all');
   const [page, setPage] = useState(1);
   const [pagination, setPagination] = useState({ total: 0, totalPages: 1, limit: 10 });
 
@@ -229,6 +246,7 @@ export default function CategoriesPage() {
         limit: '10',
         search: debouncedSearch,
         status: statusFilter,
+        department: departmentFilter,
       });
 
       const res = await fetch(`/api/admin/categories?${params.toString()}`);
@@ -241,7 +259,7 @@ export default function CategoriesPage() {
     } finally {
       setLoading(false);
     }
-  }, [page, debouncedSearch, statusFilter]);
+  }, [page, debouncedSearch, statusFilter, departmentFilter]);
 
   useEffect(() => {
     startTransition(() => {
@@ -310,20 +328,39 @@ export default function CategoriesPage() {
             />
           </div>
 
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-gray-500">Status:</span>
-            <select
-              value={statusFilter}
-              onChange={(e) => {
-                setStatusFilter(e.target.value as any);
-                setPage(1);
-              }}
-              className="px-3 py-2 text-sm border border-gray-200 rounded-lg bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#d4af37]"
-            >
-              <option value="all">All Status</option>
-              <option value="active">Active Only</option>
-              <option value="inactive">Inactive Only</option>
-            </select>
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-gray-500">Department:</span>
+              <select
+                value={departmentFilter}
+                onChange={(e) => {
+                  setDepartmentFilter(e.target.value as any);
+                  setPage(1);
+                }}
+                className="px-3 py-2 text-sm border border-gray-200 rounded-lg bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#d4af37]"
+              >
+                <option value="all">All Departments</option>
+                <option value="Fragrance">Fragrance</option>
+                <option value="Leather">Leather</option>
+                <option value="Essentials">Essentials</option>
+              </select>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-gray-500">Status:</span>
+              <select
+                value={statusFilter}
+                onChange={(e) => {
+                  setStatusFilter(e.target.value as any);
+                  setPage(1);
+                }}
+                className="px-3 py-2 text-sm border border-gray-200 rounded-lg bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#d4af37]"
+              >
+                <option value="all">All Status</option>
+                <option value="active">Active Only</option>
+                <option value="inactive">Inactive Only</option>
+              </select>
+            </div>
           </div>
         </div>
 
@@ -356,6 +393,7 @@ export default function CategoriesPage() {
                 <thead>
                   <tr className="bg-gray-50/80 border-b border-gray-100 text-xs uppercase tracking-wider">
                     <th className="text-left px-6 py-3.5 font-semibold text-gray-500">Category</th>
+                    <th className="text-left px-6 py-3.5 font-semibold text-gray-500">Department</th>
                     <th className="text-left px-6 py-3.5 font-semibold text-gray-500">Slug</th>
                     <th className="text-center px-6 py-3.5 font-semibold text-gray-500">Status</th>
                     <th className="text-center px-6 py-3.5 font-semibold text-gray-500">Products</th>
@@ -378,6 +416,19 @@ export default function CategoriesPage() {
                           )}
                           <span className="font-medium text-gray-900">{cat.name}</span>
                         </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span
+                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${
+                            cat.department === 'Leather'
+                              ? 'bg-amber-100 text-amber-900 border border-amber-200'
+                              : cat.department === 'Essentials'
+                              ? 'bg-purple-100 text-purple-900 border border-purple-200'
+                              : 'bg-emerald-100 text-emerald-900 border border-emerald-200'
+                          }`}
+                        >
+                          {cat.department || 'Fragrance'}
+                        </span>
                       </td>
                       <td className="px-6 py-4 text-gray-500 font-mono text-xs">{cat.slug}</td>
                       <td className="px-6 py-4 text-center">

@@ -4,13 +4,15 @@ import { useState } from 'react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { signOut } from 'next-auth/react';
-import { LayoutDashboard, Package, ShoppingCart, LogOut, Tag, Menu, X } from 'lucide-react';
+import { LayoutDashboard, Package, ShoppingCart, LogOut, Tag, Menu, X, Megaphone, Percent } from 'lucide-react';
 
 const navLinks = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard, exact: true },
   { href: '/admin/categories', label: 'Categories', icon: Tag, exact: false },
   { href: '/admin/products', label: 'Products', icon: Package, exact: false },
   { href: '/admin/orders', label: 'Orders', icon: ShoppingCart, exact: false },
+  { href: '/admin/promotions', label: 'Promotions & Delivery', icon: Percent, exact: false },
+  { href: '/admin/announcement', label: 'Announcement Bar', icon: Megaphone, exact: false },
 ];
 
 export default function AdminLayout({

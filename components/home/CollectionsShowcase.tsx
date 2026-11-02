@@ -5,17 +5,32 @@ import { ProductCard } from '@/components/ui/ProductCard';
 import prisma from '@/lib/prisma'; // Apne prisma client ka correct path yahan dein
 
 export default async function CollectionsShowcase() {
-  // Database se 4 Active Signature Categories aur unke products fetch karna
-  const categories = await prisma.category.findMany({
-    where: { 
-      isActive: true,
-      // isSignatureEdition: true 
-    },
-    include: {
-      products: true,
-    },
-    take: 4, 
-  });
+  const now = new Date();
+
+  // Database se Active Categories, DeliverySettings, aur Promotions fetch karna
+  const [categories, deliverySetting, activePromotions] = await Promise.all([
+    prisma.category.findMany({
+      where: { 
+        isActive: true,
+      },
+      include: {
+        products: true,
+      },
+      take: 4, 
+    }),
+    prisma.deliverySetting.findUnique({ where: { id: 1 } }),
+    prisma.promotionalDiscount.findMany({
+      where: {
+        isActive: true,
+        OR: [
+          { startDate: null, endDate: null },
+          { startDate: { lte: now }, endDate: { gte: now } },
+          { startDate: { lte: now }, endDate: null },
+          { startDate: null, endDate: { gte: now } },
+        ],
+      },
+    }),
+  ]);
 
   return (
     <section className="relative w-full py-24 bg-brand-offwhite overflow-hidden">
@@ -76,17 +91,59 @@ export default async function CollectionsShowcase() {
             
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {category.products.length > 0 ? (
-                category.products.map((product) => (
-                  <ProductCard 
-                    key={product.id} 
-                    productId={product.id}
-                    categoryName={category.name}
-                    name={product.name}
-                    target={product.gender}
-                    description={product.description}
-                    imageSrc={product.imageURL || '/images/genx-bottle.png'} 
-                  />
-                ))
+                category.products.map((product) => {
+                  const originalPrice = Number(product.price);
+
+                  // Promo calculation
+                  const matchedPromo = activePromotions.find((promo) => {
+                    if (promo.targetType === 'PRODUCT') return promo.targetId === product.id;
+                    if (promo.targetType === 'CATEGORY') return promo.targetId === product.categoryId;
+                    if (promo.targetType === 'STOREWIDE') return true;
+                    return false;
+                  });
+
+                  let discountedPrice: number | null = null;
+                  let promoBadge: string | null = null;
+
+                  if (matchedPromo) {
+                    const discountVal = Number(matchedPromo.discountValue);
+                    if (matchedPromo.discountType === 'PERCENTAGE') {
+                      discountedPrice = Math.round(originalPrice * (1 - discountVal / 100));
+                      promoBadge = `${discountVal}% OFF`;
+                    } else if (matchedPromo.discountType === 'FIXED') {
+                      discountedPrice = Math.max(0, originalPrice - discountVal);
+                      promoBadge = `PKR ${discountVal} OFF`;
+                    }
+                  }
+
+                  // Delivery badge calculation
+                  let deliveryBadge: string | null = null;
+                  if (deliverySetting?.isFreeDeliveryActive) {
+                    if (originalPrice >= Number(deliverySetting.freeDeliveryMin)) {
+                      deliveryBadge = 'Free Delivery';
+                    } else {
+                      const minK = Math.round(Number(deliverySetting.freeDeliveryMin) / 1000);
+                      deliveryBadge = `Free Over ${minK}k`;
+                    }
+                  }
+
+                  return (
+                    <ProductCard 
+                      key={product.id} 
+                      productId={product.id}
+                      categoryName={category.name}
+                      name={product.name}
+                      target={product.gender}
+                      description={product.description}
+                      imageSrc={product.imageURL || '/images/genx-bottle.png'} 
+                      price={originalPrice}
+                      discountedPrice={discountedPrice}
+                      promoBadge={promoBadge}
+                      deliveryBadge={deliveryBadge}
+                      stockQuantity={product.stockQuantity}
+                    />
+                  );
+                })
               ) : (
                 <p className="text-[#8C7A5B] font-sans text-sm italic col-span-full">No products found in this edition yet.</p>
               )}

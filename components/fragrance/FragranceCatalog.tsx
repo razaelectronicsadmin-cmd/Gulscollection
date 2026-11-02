@@ -14,6 +14,9 @@ export interface CatalogProduct {
   brand: string;
   description: string;
   price: number;
+  discountedPrice?: number | null;
+  promoBadge?: string | null;
+  deliveryBadge?: string | null;
   stockQuantity: number;
   imageURL: string | null;
   categoryId: number;
@@ -21,11 +24,13 @@ export interface CatalogProduct {
     id: number;
     name: string;
     slug: string;
+    department?: string;
   };
   topNote: string | null;
   heartNote: string | null;
   baseNote: string | null;
   gender?: string | null;
+  department?: string | null;
   isSpecialEdition: boolean;
   specialEditionType: string | null;
 }
@@ -36,16 +41,19 @@ export interface ShowcaseCategory {
   slug: string;
   image?: string | null;
   isActive: boolean;
+  department?: string;
 }
 
 interface FragranceCatalogProps {
   products: CatalogProduct[];
   categories: ShowcaseCategory[];
+  allCategories?: ShowcaseCategory[];
   totalProducts: number;
   totalPages: number;
   currentPage: number;
   selectedCollection: string;
   selectedGender?: string;
+  selectedDepartment?: string;
   searchQuery: string;
   sortBy: string;
 }
@@ -72,6 +80,7 @@ export default function FragranceCatalog({
   currentPage,
   selectedCollection,
   selectedGender = '',
+  selectedDepartment = 'Fragrance',
   searchQuery: initialSearch,
   sortBy: initialSort,
 }: FragranceCatalogProps) {
@@ -82,9 +91,16 @@ export default function FragranceCatalog({
 
   const [search, setSearch] = useState(initialSearch);
 
-  // Build category options for PremiumSelect
+  // Build category options for PremiumSelect based on the active department
   const categoryOptions: SelectOption[] = [
-    { value: 'All', label: 'All Collections' },
+    { 
+      value: 'All', 
+      label: selectedDepartment === 'Leather' 
+        ? 'All Leather Categories' 
+        : selectedDepartment === 'Essentials' 
+        ? 'All Essentials Categories' 
+        : 'All Fragrance Categories' 
+    },
     ...categories.map((c) => ({
       value: c.slug,
       label: c.name,
@@ -129,6 +145,15 @@ export default function FragranceCatalog({
     updateQueryParams({ sort: val === 'Featured' ? null : val, page: '1' });
   };
 
+  const handleDepartmentChange = (dept: string) => {
+    updateQueryParams({ 
+      department: dept, 
+      collection: null, 
+      category: null, 
+      page: '1' 
+    });
+  };
+
   const handlePageChange = (newPage: number) => {
     updateQueryParams({ page: newPage.toString() });
     const grid = document.getElementById('catalog-products-top');
@@ -151,8 +176,35 @@ export default function FragranceCatalog({
     (initialSort && initialSort !== 'Featured')
   );
 
+  const DEPARTMENT_TABS = [
+    { id: 'Fragrance', label: 'Fragrances' },
+    { id: 'Leather', label: 'Leather Goods' },
+    { id: 'Essentials', label: 'Essentials' },
+    { id: 'All', label: 'All Items' },
+  ];
+
   return (
     <section id="catalog-products-top" className="py-12 px-4 sm:px-6 md:px-12 lg:px-16 max-w-7xl mx-auto w-full">
+      {/* ─── Department Navigation Tabs ─────────────────────────────────── */}
+      <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 mb-10">
+        {DEPARTMENT_TABS.map((tab) => {
+          const isActive = (selectedDepartment || 'Fragrance') === tab.id;
+          return (
+            <button
+              key={tab.id}
+              onClick={() => handleDepartmentChange(tab.id)}
+              className={`px-6 py-2.5 text-xs uppercase tracking-[0.2em] font-semibold transition-all duration-300 rounded-xs cursor-pointer border ${
+                isActive
+                  ? 'bg-[#183629] text-[#F3E9D7] border-[#183629] shadow-soft-sm'
+                  : 'bg-white text-[#8C7A5B] border-[#C9A66B]/25 hover:border-[#183629] hover:text-[#183629]'
+              }`}
+            >
+              {tab.label}
+            </button>
+          );
+        })}
+      </div>
+
       {/* ─── Premium Filter Bar ────────────────────────────────────────── */}
       <div className="bg-white p-5 md:p-6 rounded-sm shadow-soft-md border border-[#C9A66B]/20 mb-10">
         <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
@@ -161,7 +213,7 @@ export default function FragranceCatalog({
             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#8C7A5B] pointer-events-none" size={15} />
             <input
               type="text"
-              placeholder="Search by scent, brand, notes…"
+              placeholder="Search by name, category, brand, details…"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="w-full bg-[#F7F7F5] border border-[#C9A66B]/30 rounded-sm py-2.5 pl-10 pr-9 text-[13px] text-[#29251D] placeholder-[#8C7A5B] focus:outline-none focus:border-[#C9A66B] transition-all"
@@ -278,6 +330,11 @@ export default function FragranceCatalog({
                 productId={product.id}
                 categoryName={product.category.name}
                 name={product.name}
+                price={Number(product.price)}
+                discountedPrice={product.discountedPrice}
+                promoBadge={product.promoBadge}
+                deliveryBadge={product.deliveryBadge}
+                stockQuantity={product.stockQuantity}
                 target={product.gender || 'Unisex'}
                 description={product.description || 'A timeless fragrance crafted for elegance and presence.'}
                 imageSrc={product.imageURL || '/images/hassan-gul-bottle.png'}

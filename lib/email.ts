@@ -7,6 +7,8 @@ export interface EmailOrderPayload {
   customerEmail: string;
   totalAmount: number | string;
   status: OrderStatus;
+  trackingNumber?: string | null;
+  carrier?: string | null;
   cancellationReason?: string | null;
   items?: {
     name: string;
@@ -35,7 +37,7 @@ function getTransporter() {
 
 // Generate luxury branded HTML email
 function generateEmailHTML(payload: EmailOrderPayload): { subject: string; html: string } {
-  const { orderNumber, customerName, status, cancellationReason, totalAmount, items } = payload;
+  const { orderNumber, customerName, status, cancellationReason, totalAmount, items, trackingNumber, carrier } = payload;
   const brandGold = '#d4af37';
   const brandDark = '#0a1f11';
 
@@ -64,17 +66,28 @@ function generateEmailHTML(payload: EmailOrderPayload): { subject: string; html:
 
     case 'DISPATCHED':
       subject = `Out for Delivery: Order #${orderNumber} is on the way!`;
-      headline = 'Your Fragrance is on the Way';
+      headline = 'Your Order is Dispatched';
       statusBadgeColor = '#d97706';
       messageContent = `
         <p style="margin: 0 0 16px; font-size: 15px; line-height: 1.6; color: #374151;">
           Dear <strong>${customerName}</strong>,
         </p>
         <p style="margin: 0 0 16px; font-size: 15px; line-height: 1.6; color: #374151;">
-          Exciting news! Your order <strong>#${orderNumber}</strong> has been dispatched and is currently out for delivery.
+          Exciting news! Your order <strong>#${orderNumber}</strong> has been dispatched and handed over to our courier partner.
         </p>
+        ${
+          trackingNumber
+            ? `
+          <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; margin: 16px 0;">
+            <p style="margin: 0 0 6px; font-size: 12px; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.05em;">Courier & Tracking Information</p>
+            <p style="margin: 0; font-size: 14px; color: #0f172a;"><strong>Courier Partner:</strong> ${carrier || 'Official Courier Service'}</p>
+            <p style="margin: 4px 0 0; font-size: 14px; color: #0f172a;"><strong>Tracking Number:</strong> <span style="font-family: monospace; font-weight: bold; background: #fff; padding: 2px 8px; border: 1px solid #cbd5e1; border-radius: 4px; color: #183629;">${trackingNumber}</span></p>
+          </div>
+        `
+            : ''
+        }
         <p style="margin: 0; font-size: 14px; line-height: 1.6; color: #6b7280;">
-          Please keep your phone active for our courier representative.
+          Please keep your phone reachable for delivery confirmation.
         </p>
       `;
       break;

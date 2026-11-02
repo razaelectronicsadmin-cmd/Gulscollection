@@ -16,6 +16,7 @@ export async function GET(req: Request) {
     const search = searchParams.get('search')?.trim() || '';
     const categoryId = searchParams.get('categoryId') || 'all';
     const stockStatus = searchParams.get('stockStatus') || 'all';
+    const department = searchParams.get('department') || 'all';
 
     const where: Prisma.ProductWhereInput = {};
 
@@ -25,6 +26,10 @@ export async function GET(req: Request) {
         { brand: { contains: search } },
         { description: { contains: search } },
       ];
+    }
+
+    if (department && department !== 'all') {
+      where.department = department;
     }
 
     if (categoryId && categoryId !== 'all') {
@@ -81,6 +86,8 @@ export async function POST(req: Request) {
     }
 
     const data = parsed.data;
+    const imagesArray = Array.isArray(data.images) ? data.images.filter(Boolean) : [];
+    const coverImage = imagesArray[0] || data.imageURL || null;
 
     const product = await prisma.product.create({
       data: {
@@ -90,7 +97,9 @@ export async function POST(req: Request) {
         price: parseFloat(data.price),
         stockQuantity: parseInt(data.stockQuantity),
         categoryId: parseInt(data.categoryId),
-        imageURL: data.imageURL || null,
+        imageURL: coverImage,
+        images: imagesArray.length > 0 ? JSON.stringify(imagesArray) : coverImage ? JSON.stringify([coverImage]) : null,
+        department: data.department || 'Fragrance',
         topNote: data.topNote || null,
         heartNote: data.heartNote || null,
         baseNote: data.baseNote || null,

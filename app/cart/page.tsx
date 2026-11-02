@@ -1,10 +1,10 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Minus, Plus, X, ArrowRight, ShoppingBag, ShieldCheck } from 'lucide-react';
+import { Minus, Plus, X, ArrowRight, ShoppingBag, ShieldCheck, Truck, Sparkles } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/Button';
@@ -13,6 +13,36 @@ import { useStore } from '@/context/StoreContext';
 
 export default function CartPage() {
   const { cart, removeFromCart, updateQuantity, cartTotal } = useStore();
+  const [deliverySettings, setDeliverySettings] = useState<{
+    standardFee: number;
+    freeDeliveryMin: number;
+    isFreeDeliveryActive: boolean;
+  }>({
+    standardFee: 250,
+    freeDeliveryMin: 5000,
+    isFreeDeliveryActive: true,
+  });
+
+  useEffect(() => {
+    fetch('/api/delivery-settings')
+      .then((res) => res.json())
+      .then((data) => {
+        if (!data.error) {
+          setDeliverySettings({
+            standardFee: data.standardFee ?? 250,
+            freeDeliveryMin: data.freeDeliveryMin ?? 5000,
+            isFreeDeliveryActive: data.isFreeDeliveryActive ?? true,
+          });
+        }
+      })
+      .catch((err) => console.error('Failed to load delivery settings:', err));
+  }, []);
+
+  const progressPercent = Math.min(
+    100,
+    Math.round((cartTotal / (deliverySettings.freeDeliveryMin || 5000)) * 100)
+  );
+  const diffToFree = Math.max(0, deliverySettings.freeDeliveryMin - cartTotal);
 
   return (
     <main className="min-h-screen bg-[#F7F7F5] text-[#29251D] selection:bg-[#C9A66B]/30 selection:text-[#183629]">
@@ -135,7 +165,31 @@ export default function CartPage() {
                     Order Summary
                   </h2>
 
-                  <div className="space-y-5 mb-8 text-[13px] font-sans">
+                  {/* Free Delivery Goal Bar */}
+                  {deliverySettings.isFreeDeliveryActive && (
+                    <div className="mb-6 p-4 rounded-sm bg-[#FAF8F5] border border-[#C9A66B]/20 text-xs">
+                      <div className="flex items-center gap-2 mb-2 font-medium">
+                        <Truck size={15} className="text-[#183629]" />
+                        {diffToFree === 0 ? (
+                          <span className="text-emerald-800 font-bold">
+                            You have qualified for Free Express Delivery!
+                          </span>
+                        ) : (
+                          <span className="text-[#183629]">
+                            Add <strong className="text-[#C9A66B]">PKR {diffToFree.toLocaleString()}</strong> more for Free Delivery
+                          </span>
+                        )}
+                      </div>
+                      <div className="w-full bg-gray-200 h-1.5 rounded-full overflow-hidden">
+                        <div
+                          className="bg-[#C9A66B] h-full transition-all duration-500 rounded-full"
+                          style={{ width: `${progressPercent}%` }}
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="space-y-4 mb-8 text-[13px] font-sans">
                     <div className="flex justify-between text-[#8C7A5B]">
                       <span>Subtotal</span>
                       <span className="font-medium text-[#29251D]">
@@ -144,16 +198,24 @@ export default function CartPage() {
                     </div>
 
                     <div className="flex justify-between items-center text-[#8C7A5B]">
-                      <span>Shipping & Packaging</span>
-                      <span className="text-[#C9A66B] font-semibold uppercase tracking-wider text-[12px]">
-                        Complimentary
+                      <span>Estimated Shipping</span>
+                      <span className="font-semibold text-[#183629] text-[12px]">
+                        {diffToFree === 0 ? (
+                          <span className="text-emerald-800 font-bold uppercase tracking-wider">FREE</span>
+                        ) : (
+                          `PKR ${deliverySettings.standardFee}`
+                        )}
                       </span>
                     </div>
 
-                    <div className="pt-5 border-t border-[#C9A66B]/30 flex justify-between items-baseline">
+                    <p className="text-[11px] text-[#8C7A5B]/70 italic">
+                      Coupons & city-specific rates calculated at checkout.
+                    </p>
+
+                    <div className="pt-4 border-t border-[#C9A66B]/30 flex justify-between items-baseline">
                       <span className="font-serif text-lg text-[#183629]">Estimated Total</span>
                       <span className="font-serif text-2xl font-bold text-[#C9A66B] tracking-wide">
-                        PKR {cartTotal.toLocaleString()}
+                        PKR {(cartTotal + (diffToFree === 0 ? 0 : deliverySettings.standardFee)).toLocaleString()}
                       </span>
                     </div>
                   </div>

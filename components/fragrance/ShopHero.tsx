@@ -17,18 +17,58 @@ export interface SignatureEditionPill {
 interface ShopHeroProps {
   signatureEditions: SignatureEditionPill[];
   activeCategory?: string;
+  department?: string;
 }
 
-export default function ShopHero({ signatureEditions, activeCategory }: ShopHeroProps) {
+export default function ShopHero({ signatureEditions, activeCategory, department = 'Fragrance' }: ShopHeroProps) {
   const router = useRouter();
 
   const handlePillClick = (slug: string) => {
-    if (activeCategory === slug) {
-      router.push('/fragrance', { scroll: false });
+    const params = new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '');
+    if (activeCategory?.toLowerCase() === slug.toLowerCase()) {
+      params.delete('category');
+      params.delete('collection');
     } else {
-      router.push(`/fragrance?category=${encodeURIComponent(slug)}`, { scroll: false });
+      params.set('category', slug);
+    }
+    if (department && department !== 'All' && !params.get('department')) {
+      params.set('department', department);
+    }
+    const query = params.toString();
+    router.push(query ? `/fragrance?${query}` : '/fragrance', { scroll: false });
+  };
+
+  const getDepartmentContent = () => {
+    switch (department) {
+      case 'Leather':
+        return {
+          tag: 'Artisan Leather Atelier',
+          title: 'The Leather Collection',
+          subtitle: 'Handcrafted from full-grain vegetable-tanned leather. Timeless wallets, executive briefcases, travel duffles, and durable accessories built to last a lifetime.',
+        };
+      case 'Essentials':
+        return {
+          tag: 'Home & Lifestyle Sanctuary',
+          title: 'The Essentials Collection',
+          subtitle: 'Hand-poured pure soy wax candles, artisanal reed diffusers, insulated drinkware, and daily grooming essentials to elevate your spaces.',
+        };
+      case 'All':
+        return {
+          tag: 'The Complete House Repertoire',
+          title: 'All Collections',
+          subtitle: "Explore Gul's complete luxury catalogue: signature fragrance editions, artisan leather craftsmanship, and refined daily lifestyle essentials.",
+        };
+      case 'Fragrance':
+      default:
+        return {
+          tag: 'The Fragrance House',
+          title: 'The Fragrance Collection',
+          subtitle: 'Explore our artisanal repertoire of hand-formulated perfumes, masterfully blended with high-concentration oils for transcendent sillage and all-day projection.',
+        };
     }
   };
+
+  const content = getDepartmentContent();
 
   return (
     <section className="relative w-full bg-brand-white pt-32 pb-12 px-6 md:px-14 border-b border-brand-black/5 overflow-hidden">
@@ -44,30 +84,32 @@ export default function ShopHero({ signatureEditions, activeCategory }: ShopHero
           className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full border border-brand-black/10 bg-brand-offwhite text-[12px] font-sans tracking-[0.25em] uppercase text-brand-charcoal mb-4"
         >
           <span className="w-1.5 h-1.5 rounded-full bg-brand-green" />
-          The Fragrance House
+          {content.tag}
         </motion.div>
 
         {/* Centered Editorial Heading */}
         <motion.h1
+          key={content.title}
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.1 }}
           className="font-serif text-4xl sm:text-5xl md:text-6xl font-normal text-brand-black tracking-tight mb-4"
         >
-          The Fragrance Collection
+          {content.title}
         </motion.h1>
 
         {/* Sophisticated Body Text */}
         <motion.p
+          key={content.subtitle}
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}
           className="text-xs sm:text-sm text-brand-muted font-sans max-w-xl mx-auto leading-relaxed mb-10 tracking-wide"
         >
-          Explore our artisanal repertoire of hand-formulated perfumes, masterfully blended with high-concentration oils for transcendent sillage and all-day projection.
+          {content.subtitle}
         </motion.p>
 
-        {/* Dynamic Minimal Signature Cards / Pills */}
+        {/* Dynamic Minimal Category / Signature Pills */}
         {signatureEditions && signatureEditions.length > 0 && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}

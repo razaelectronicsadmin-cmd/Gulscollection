@@ -17,7 +17,7 @@ export async function GET(req: Request) {
     if (all) {
       const categories = await prisma.category.findMany({
         orderBy: { name: 'asc' },
-        select: { id: true, name: true, slug: true, isActive: true },
+        select: { id: true, name: true, slug: true, isActive: true, department: true },
       });
       return NextResponse.json(categories);
     }
@@ -26,6 +26,7 @@ export async function GET(req: Request) {
     const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') || '10') || 10));
     const search = searchParams.get('search')?.trim() || '';
     const status = searchParams.get('status') || 'all';
+    const department = searchParams.get('department') || 'all';
 
     const where: Prisma.CategoryWhereInput = {};
 
@@ -40,6 +41,10 @@ export async function GET(req: Request) {
       where.isActive = true;
     } else if (status === 'inactive') {
       where.isActive = false;
+    }
+
+    if (department && department !== 'all') {
+      where.department = department;
     }
 
     const [total, categories] = await Promise.all([
@@ -80,7 +85,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: parsed.error.flatten().fieldErrors }, { status: 422 });
     }
 
-    const { name, slug, image, isActive } = parsed.data;
+    const { name, slug, image, isActive, department } = parsed.data;
 
     const existing = await prisma.category.findUnique({ where: { slug } });
     if (existing) {
@@ -92,6 +97,7 @@ export async function POST(req: Request) {
         name,
         slug,
         image: image || null,
+        department: department || 'Fragrance',
         isActive: isActive ?? true,
       },
     });

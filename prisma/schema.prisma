@@ -23,16 +23,18 @@ model User {
 }
 
 model Category {
-  id        Int       @id @default(autoincrement())
-  name      String
-  slug      String    @unique
+  id                 Int       @id @default(autoincrement())
+  name               String
+  slug               String    @unique
   image              String?
   isActive           Boolean   @default(true)
   isSignatureEdition Boolean   @default(false)
+  department         String    @default("Fragrance")
   products           Product[]
 
   @@index([isActive])
   @@index([isSignatureEdition])
+  @@index([department])
 }
 
 model Product {
@@ -43,6 +45,7 @@ model Product {
   price              Decimal     @db.Decimal(10, 2)
   stockQuantity      Int         @default(0)
   imageURL           String?
+  images             String?     @db.Text
   categoryId         Int
   category           Category    @relation(fields: [categoryId], references: [id])
   topNote            String?
@@ -52,11 +55,13 @@ model Product {
   isSpecialEdition   Boolean     @default(false)
   specialEditionType String?
   gender             String      @default("Unisex")
+  department         String      @default("Fragrance")
   orderItems         OrderItem[]
 
   @@index([categoryId])
   @@index([price])
   @@index([gender])
+  @@index([department])
 }
 
 enum OrderStatus {
@@ -74,8 +79,14 @@ model Order {
   customerEmail      String
   customerPhone      String
   shippingAddress    String      @db.Text
+  subtotal           Decimal     @default(0.00) @db.Decimal(10, 2)
+  deliveryFee        Decimal     @default(0.00) @db.Decimal(10, 2)
+  discountAmount     Decimal     @default(0.00) @db.Decimal(10, 2)
+  couponCode         String?
   totalAmount        Decimal     @db.Decimal(10, 2)
   status             OrderStatus @default(PENDING)
+  trackingNumber     String?
+  carrier            String?
   cancellationReason String?     @db.Text
   createdAt          DateTime    @default(now())
   updatedAt          DateTime    @updatedAt
@@ -98,5 +109,99 @@ model OrderItem {
 
   @@index([orderId])
   @@index([productId])
+}
+
+// Singleton model — Delivery Charges & Rules configuration (id = 1)
+model DeliverySetting {
+  id                   Int      @id @default(1)
+  standardFee          Decimal  @default(250.00) @db.Decimal(10, 2)
+  freeDeliveryMin      Decimal  @default(5000.00) @db.Decimal(10, 2)
+  isFreeDeliveryActive Boolean  @default(true)
+  cityRules            String?  @db.Text // JSON array: [{"city": "Karachi", "fee": 0, "isFree": true}]
+  updatedAt            DateTime @updatedAt
+}
+
+enum DiscountType {
+  PERCENTAGE
+  FIXED
+  FREE_SHIPPING
+}
+
+// Marketing Coupon Codes (Promo Codes applied at checkout)
+model Coupon {
+  id             Int          @id @default(autoincrement())
+  code           String       @unique
+  description    String?
+  discountType   DiscountType @default(PERCENTAGE)
+  discountValue  Decimal      @db.Decimal(10, 2)
+  minOrderAmount Decimal?     @db.Decimal(10, 2)
+  maxDiscount    Decimal?     @db.Decimal(10, 2)
+  usageLimit     Int?
+  timesUsed      Int          @default(0)
+  startDate      DateTime?
+  endDate        DateTime?
+  isActive       Boolean      @default(true)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@index([code])
+  @@index([isActive])
+}
+
+enum PromoTarget {
+  STOREWIDE
+  CATEGORY
+  PRODUCT
+}
+
+// Automatic Promotional Discounts (Category / Product seasonal discounts)
+model PromotionalDiscount {
+  id            Int          @id @default(autoincrement())
+  name          String
+  targetType    PromoTarget  @default(CATEGORY)
+  targetId      Int?         // categoryId or productId (null if STOREWIDE)
+  targetName    String?      // readable reference label
+  discountType  DiscountType @default(PERCENTAGE)
+  discountValue Decimal      @db.Decimal(10, 2)
+  startDate     DateTime?
+  endDate       DateTime?
+  isActive      Boolean      @default(true)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  @@index([targetType])
+  @@index([isActive])
+}
+
+// Singleton model — always exactly 1 row (id = 1)
+model AnnouncementBar {
+  id              Int     @id @default(1)
+  isVisible       Boolean @default(true)
+
+  // Center announcement message
+  message         String  @default("FREE DELIVERY ON ORDERS ABOVE PKR 5,000")
+
+  // Left: Phone
+  showPhone       Boolean @default(true)
+  phoneNumber     String  @default("0333-2265461")
+  phoneLink       String  @default("tel:03332265461")
+
+  // Left: Email
+  showEmail       Boolean @default(true)
+  emailAddress    String  @default("gulscollection@gmail.com")
+  emailLink       String  @default("mailto:gulscollection@gmail.com")
+
+  // Right: Social icons
+  showSocialIcons Boolean @default(true)
+  instagramUrl    String  @default("https://instagram.com")
+  facebookUrl     String  @default("https://facebook.com")
+  tiktokUrl       String  @default("https://tiktok.com")
+  youtubeUrl      String  @default("https://youtube.com")
+
+  // Styling
+  bgColor         String  @default("#0b0f0e")
+  textColor       String  @default("#F5F5F0")
+  accentColor     String  @default("#C9A66B")
+  fontSize        String  @default("sm")
 }
 

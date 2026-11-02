@@ -10,6 +10,7 @@ interface FragrancePageProps {
   searchParams: Promise<{
     collection?: string;
     category?: string;
+    department?: string;
     gender?: string;
     search?: string;
     q?: string;
@@ -23,13 +24,14 @@ export const dynamic = 'force-dynamic';
 export default async function FragrancePage({ searchParams }: FragrancePageProps) {
   const resolvedParams = await searchParams;
   const collection = resolvedParams.collection || resolvedParams.category || '';
+  const department = resolvedParams.department || '';
   const gender = resolvedParams.gender || '';
   const search = resolvedParams.q || resolvedParams.search || '';
   const sort = resolvedParams.sort || 'Featured';
   const page = Math.max(1, parseInt(resolvedParams.page || '1') || 1);
   const pageSize = 12;
 
-  // 1. Fetch categories from database: active categories + signature editions specifically for header
+  // 1. Fetch all active categories from database with department
   const rawCategories = await prisma.category.findMany({
     where: { isActive: true },
     orderBy: { id: 'asc' },
@@ -40,13 +42,32 @@ export default async function FragrancePage({ searchParams }: FragrancePageProps
       image: true,
       isActive: true,
       isSignatureEdition: true,
+      department: true,
     },
   });
 
-  const signatureEditions = rawCategories.filter((c) => c.isSignatureEdition);
+  // Effective department: default to Fragrance if none or blank
+  const activeDepartment = department || 'Fragrance';
 
-  // 2. Build where filter for Products (Category, Gender, Search)
+  // Determine pills for ShopHero based on active department
+  let heroPills = rawCategories.filter((c) => {
+    if (activeDepartment === 'All') return true;
+    if (activeDepartment === 'Fragrance') {
+      return c.department === 'Fragrance' && (c.isSignatureEdition || !c.slug.includes('men'));
+    }
+    return c.department === activeDepartment;
+  });
+
+  if (heroPills.length === 0) {
+    heroPills = rawCategories.filter((c) => c.department === activeDepartment);
+  }
+
+  // 2. Build where filter for Products (Department, Category, Gender, Search)
   const where: Prisma.ProductWhereInput = {};
+
+  if (activeDepartment && activeDepartment !== 'All') {
+    where.department = activeDepartment;
+  }
 
   if (collection && collection !== 'All') {
     const matchedCategory = rawCategories.find(
@@ -85,7 +106,8 @@ export default async function FragrancePage({ searchParams }: FragrancePageProps
   }
 
   // 4. Server-Side Data Fetching
-  const [totalCount, rawProducts] = await Promise.all([
+  const now = new Date();
+  const [totalCount, rawProducts, deliverySetting, activePromotions] = await Promise.all([
     prisma.product.count({ where }),
     prisma.product.findMany({
       where,
@@ -98,39 +120,102 @@ export default async function FragrancePage({ searchParams }: FragrancePageProps
             id: true,
             name: true,
             slug: true,
+            department: true,
           },
         },
       },
     }),
+    prisma.deliverySetting.findUnique({ where: { id: 1 } }),
+    prisma.promotionalDiscount.findMany({
+      where: {
+        isActive: true,
+        OR: [
+          { startDate: null, endDate: null },
+          { startDate: { lte: now }, endDate: { gte: now } },
+          { startDate: { lte: now }, endDate: null },
+          { startDate: null, endDate: { gte: now } },
+        ],
+      },
+    }),
   ]);
 
-  // Format products with serialized number prices
-  const products: CatalogProduct[] = rawProducts.map((p) => ({
-    id: p.id,
-    name: p.name,
-    brand: p.brand,
-    description: p.description,
-    price: Number(p.price),
-    stockQuantity: p.stockQuantity,
-    imageURL: p.imageURL,
-    categoryId: p.categoryId,
-    category: p.category,
-    topNote: p.topNote,
-    heartNote: p.heartNote,
-    baseNote: p.baseNote,
-    isSpecialEdition: p.isSpecialEdition,
-    specialEditionType: p.specialEditionType,
-    gender: p.gender,
-  }));
+  // Format products with dynamic promotional discounts and delivery tags
+  const products: CatalogProduct[] = rawProducts.map((p) => {
+    const originalPrice = Number(p.price);
+
+    // Check if active promotion applies to this product or category
+    const matchedPromo = activePromotions.find((promo) => {
+      if (promo.targetType === 'PRODUCT') return promo.targetId === p.id;
+      if (promo.targetType === 'CATEGORY') return promo.targetId === p.categoryId;
+      if (promo.targetType === 'STOREWIDE') return true;
+      return false;
+    });
+
+    let discountedPrice: number | null = null;
+    let promoBadge: string | null = null;
+
+    if (matchedPromo) {
+      const discountVal = Number(matchedPromo.discountValue);
+      if (matchedPromo.discountType === 'PERCENTAGE') {
+        discountedPrice = Math.round(originalPrice * (1 - discountVal / 100));
+        promoBadge = `${discountVal}% OFF`;
+      } else if (matchedPromo.discountType === 'FIXED') {
+        discountedPrice = Math.max(0, originalPrice - discountVal);
+        promoBadge = `PKR ${discountVal} OFF`;
+      }
+    }
+
+    // Dynamic Delivery Badge directly from Admin delivery settings
+    let deliveryBadge: string | null = null;
+    if (deliverySetting?.isFreeDeliveryActive) {
+      if (originalPrice >= Number(deliverySetting.freeDeliveryMin)) {
+        deliveryBadge = 'Free Delivery';
+      } else {
+        const minK = Math.round(Number(deliverySetting.freeDeliveryMin) / 1000);
+        deliveryBadge = `Free Over ${minK}k`;
+      }
+    }
+
+    return {
+      id: p.id,
+      name: p.name,
+      brand: p.brand,
+      description: p.description,
+      price: originalPrice,
+      discountedPrice,
+      promoBadge,
+      deliveryBadge,
+      stockQuantity: p.stockQuantity,
+      imageURL: p.imageURL,
+      categoryId: p.categoryId,
+      category: p.category,
+      topNote: p.topNote,
+      heartNote: p.heartNote,
+      baseNote: p.baseNote,
+      isSpecialEdition: p.isSpecialEdition,
+      specialEditionType: p.specialEditionType,
+      gender: p.gender,
+      department: p.department,
+    };
+  });
 
   const totalPages = Math.ceil(totalCount / pageSize) || 1;
+
+  // Filter categories shown in catalog dropdown by active department
+  const filteredCategoriesForCatalog = activeDepartment === 'All'
+    ? rawCategories
+    : rawCategories.filter((c) => c.department === activeDepartment);
 
   return (
     <main className="min-h-screen bg-[#F7F7F5] text-[#29251D] selection:bg-[#C9A66B]/30 selection:text-[#183629]">
       <Navbar />
 
-      {/* Sleek Native Shop Hero with Minimal Signature Edition Pills */}
-      <ShopHero signatureEditions={signatureEditions} activeCategory={collection} />
+      {/* Sleek Native Shop Hero with Minimal Department Pills */}
+      <ShopHero 
+        signatureEditions={heroPills} 
+        activeCategory={collection} 
+        department={activeDepartment}
+      />
 
       {/* Interactive Catalog Component */}
       <Suspense 
@@ -142,12 +227,14 @@ export default async function FragrancePage({ searchParams }: FragrancePageProps
       >
         <FragranceCatalog
           products={products}
-          categories={rawCategories}
+          categories={filteredCategoriesForCatalog}
+          allCategories={rawCategories}
           totalProducts={totalCount}
           totalPages={totalPages}
           currentPage={page}
           selectedCollection={collection}
           selectedGender={gender}
+          selectedDepartment={activeDepartment}
           searchQuery={search}
           sortBy={sort}
         />

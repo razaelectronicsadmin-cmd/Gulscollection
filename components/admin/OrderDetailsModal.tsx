@@ -17,6 +17,8 @@ export interface AdminOrder {
   shippingAddress: string;
   totalAmount: number | string;
   status: OrderStatus;
+  trackingNumber?: string | null;
+  carrier?: string | null;
   cancellationReason: string | null;
   createdAt: string;
   updatedAt: string;
@@ -36,7 +38,11 @@ export interface AdminOrder {
 interface OrderDetailsModalProps {
   order: AdminOrder | null;
   onClose: () => void;
-  onStatusChange: (orderId: number, newStatus: OrderStatus) => void;
+  onStatusChange: (
+    orderId: number,
+    newStatus: OrderStatus,
+    options?: { trackingNumber?: string; carrier?: string }
+  ) => void;
   onRequestCancel: (order: AdminOrder) => void;
   isUpdatingStatus: boolean;
 }
@@ -48,6 +54,10 @@ export default function OrderDetailsModal({
   onRequestCancel,
   isUpdatingStatus,
 }: OrderDetailsModalProps) {
+  const [carrier, setCarrier] = useState(order?.carrier || 'TCS');
+  const [trackingNumber, setTrackingNumber] = useState(order?.trackingNumber || '');
+  const [showTrackingInput, setShowTrackingInput] = useState(false);
+
   if (!order) return null;
 
   const getStatusBadge = (status: OrderStatus) => {
@@ -114,6 +124,9 @@ export default function OrderDetailsModal({
                       const newStatus = e.target.value as OrderStatus;
                       if (newStatus === 'CANCELLED') {
                         onRequestCancel(order);
+                      } else if (newStatus === 'DISPATCHED') {
+                        setShowTrackingInput(true);
+                        onStatusChange(order.id, newStatus, { trackingNumber, carrier });
                       } else {
                         onStatusChange(order.id, newStatus);
                       }
@@ -131,6 +144,98 @@ export default function OrderDetailsModal({
               )}
             </div>
           </div>
+
+          {/* Courier & Tracking Details Card */}
+          {(order.status === 'DISPATCHED' || showTrackingInput || order.trackingNumber) && (
+            <div className="bg-purple-50/70 border border-purple-200/70 rounded-lg p-4">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <Truck size={16} className="text-purple-700" />
+                  <span className="text-xs font-bold text-purple-900 uppercase tracking-wider">
+                    Courier & Tracking Details
+                  </span>
+                </div>
+                {order.trackingNumber && !showTrackingInput && (
+                  <button
+                    type="button"
+                    onClick={() => setShowTrackingInput(true)}
+                    className="text-[11px] text-purple-700 hover:text-purple-900 font-semibold underline cursor-pointer"
+                  >
+                    Edit Tracking
+                  </button>
+                )}
+              </div>
+
+              {order.trackingNumber && !showTrackingInput ? (
+                <div className="grid grid-cols-2 gap-3 text-xs bg-white p-3 rounded border border-purple-100">
+                  <div>
+                    <span className="text-gray-400 text-[11px] block uppercase font-medium">Courier Partner:</span>
+                    <span className="font-semibold text-gray-900">{order.carrier || 'Standard Courier'}</span>
+                  </div>
+                  <div>
+                    <span className="text-gray-400 text-[11px] block uppercase font-medium">Tracking Code:</span>
+                    <span className="font-mono font-bold text-purple-900 bg-purple-50 px-2 py-0.5 rounded inline-block">
+                      {order.trackingNumber}
+                    </span>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-3 bg-white p-3 rounded border border-purple-100">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-[11px] font-semibold text-gray-600 mb-1">Courier Partner</label>
+                      <select
+                        value={carrier}
+                        onChange={(e) => setCarrier(e.target.value)}
+                        className="w-full text-xs border border-gray-300 rounded px-2.5 py-1.5 bg-white text-gray-900 focus:outline-none focus:ring-1 focus:ring-purple-500"
+                      >
+                        <option value="TCS">TCS</option>
+                        <option value="Leopards Courier">Leopards Courier</option>
+                        <option value="Trax Logistics">Trax Logistics</option>
+                        <option value="PostEx">PostEx</option>
+                        <option value="Call Courier">Call Courier</option>
+                        <option value="M&P">M&P</option>
+                        <option value="Other">Other</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-semibold text-gray-600 mb-1">Tracking Number</label>
+                      <input
+                        type="text"
+                        placeholder="e.g. 1294827394"
+                        value={trackingNumber}
+                        onChange={(e) => setTrackingNumber(e.target.value)}
+                        className="w-full text-xs border border-gray-300 rounded px-2.5 py-1.5 bg-white text-gray-900 focus:outline-none focus:ring-1 focus:ring-purple-500 font-mono"
+                      />
+                    </div>
+                  </div>
+                  <div className="flex justify-end gap-2 pt-1">
+                    {order.trackingNumber && (
+                      <button
+                        type="button"
+                        onClick={() => setShowTrackingInput(false)}
+                        className="px-3 py-1 text-xs text-gray-600 hover:text-gray-900"
+                      >
+                        Cancel
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      disabled={isUpdatingStatus}
+                      onClick={() => {
+                        onStatusChange(order.id, 'DISPATCHED', { trackingNumber, carrier });
+                        setShowTrackingInput(false);
+                      }}
+                      className="px-3.5 py-1.5 text-xs font-semibold text-white bg-purple-700 hover:bg-purple-800 rounded transition-colors flex items-center gap-1.5 shadow-xs cursor-pointer"
+                    >
+                      <Send size={12} />
+                      Save & Send Tracking Email
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Cancellation Notice if Cancelled */}
           {order.status === 'CANCELLED' && order.cancellationReason && (

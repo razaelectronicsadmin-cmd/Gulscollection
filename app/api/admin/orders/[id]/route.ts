@@ -57,7 +57,7 @@ export async function PATCH(req: Request, { params }: Params) {
     if (isNaN(orderId)) return NextResponse.json({ error: 'Invalid ID' }, { status: 400 });
 
     const body = await req.json();
-    const { status, cancellationReason } = body;
+    const { status, cancellationReason, trackingNumber, carrier } = body;
 
     if (!status || !Object.values(OrderStatus).includes(status)) {
       return NextResponse.json({ error: 'Invalid or missing status' }, { status: 400 });
@@ -96,6 +96,8 @@ export async function PATCH(req: Request, { params }: Params) {
       data: {
         status: status as OrderStatus,
         cancellationReason: status === 'CANCELLED' ? cancellationReason.trim() : null,
+        ...(trackingNumber !== undefined && { trackingNumber: trackingNumber ? trackingNumber.trim() : null }),
+        ...(carrier !== undefined && { carrier: carrier ? carrier.trim() : null }),
       },
       include: {
         orderItems: {
@@ -109,13 +111,15 @@ export async function PATCH(req: Request, { params }: Params) {
     });
 
     // Trigger Automated Email Notification if status changed
-    if (currentOrder.status !== status) {
+    if (currentOrder.status !== status || (status === 'DISPATCHED' && trackingNumber && trackingNumber !== currentOrder.trackingNumber)) {
       const emailPayload = {
         orderNumber: updatedOrder.orderNumber,
         customerName: updatedOrder.customerName,
         customerEmail: updatedOrder.customerEmail,
         totalAmount: Number(updatedOrder.totalAmount),
         status: updatedOrder.status,
+        trackingNumber: updatedOrder.trackingNumber,
+        carrier: updatedOrder.carrier,
         cancellationReason: updatedOrder.cancellationReason,
         items: updatedOrder.orderItems.map((item) => ({
           name: item.product.name,

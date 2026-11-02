@@ -144,7 +144,11 @@ export default function OrdersManagementPage() {
   };
 
   // Direct Status Update Handler
-  const handleUpdateStatus = async (orderId: number, newStatus: OrderStatus, cancellationReason?: string) => {
+  const handleUpdateStatus = async (
+    orderId: number,
+    newStatus: OrderStatus,
+    options?: { cancellationReason?: string; trackingNumber?: string; carrier?: string }
+  ) => {
     setIsUpdatingStatus(true);
     try {
       const res = await fetch(`/api/admin/orders/${orderId}`, {
@@ -152,7 +156,9 @@ export default function OrdersManagementPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           status: newStatus,
-          cancellationReason,
+          cancellationReason: options?.cancellationReason,
+          trackingNumber: options?.trackingNumber,
+          carrier: options?.carrier,
         }),
       });
 
@@ -487,7 +493,7 @@ export default function OrdersManagementPage() {
         <OrderDetailsModal
           order={viewingOrder}
           onClose={() => setViewingOrder(null)}
-          onStatusChange={(id, status) => handleUpdateStatus(id, status)}
+          onStatusChange={(id, status, opts) => handleUpdateStatus(id, status, opts)}
           onRequestCancel={(order) => {
             setViewingOrder(null);
             setCancellingOrder(order);
@@ -502,7 +508,7 @@ export default function OrdersManagementPage() {
           isOpen={true}
           orderNumber={cancellingOrder.orderNumber}
           isSubmitting={isUpdatingStatus}
-          onConfirm={(reason) => handleUpdateStatus(cancellingOrder.id, 'CANCELLED', reason)}
+          onConfirm={(reason) => handleUpdateStatus(cancellingOrder.id, 'CANCELLED', { cancellationReason: reason })}
           onClose={() => setCancellingOrder(null)}
         />
       )}

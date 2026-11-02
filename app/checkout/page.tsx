@@ -1,23 +1,55 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { CheckCircle2, ShieldCheck, Truck, ArrowLeft, Lock } from 'lucide-react';
+import {
+  CheckCircle2, ShieldCheck, Truck, ArrowLeft,
+  Tag, X, Loader2, Sparkles
+} from 'lucide-react';
 import { useStore } from '@/context/StoreContext';
 import type { OrderFormData } from '@/context/StoreContext';
 import { Button } from '@/components/ui/Button';
 import PremiumCard from '@/components/ui/PremiumCard';
-import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
+
+interface DeliverySettingsData {
+  standardFee: number;
+  freeDeliveryMin: number;
+  isFreeDeliveryActive: boolean;
+  cityRules: { city: string; fee: number; isFree: boolean; note?: string }[];
+}
+
+interface AppliedCoupon {
+  code: string;
+  discountType: 'PERCENTAGE' | 'FIXED' | 'FREE_SHIPPING';
+  discountValue: number;
+  discountAmount: number;
+  description: string | null;
+  isFreeShipping: boolean;
+}
 
 export default function CheckoutPage() {
   const { cart, cartTotal, placeOrder } = useStore();
   const [isSuccess, setIsSuccess] = useState(false);
   const [placedOrderNumber, setPlacedOrderNumber] = useState('');
+  const [placedOrderDetails, setPlacedOrderDetails] = useState<any>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [orderError, setOrderError] = useState('');
+
+  // Delivery settings
+  const [deliverySettings, setDeliverySettings] = useState<DeliverySettingsData>({
+    standardFee: 250,
+    freeDeliveryMin: 5000,
+    isFreeDeliveryActive: true,
+    cityRules: [],
+  });
+
+  // Coupon state
+  const [couponCodeInput, setCouponCodeInput] = useState('');
+  const [isValidatingCoupon, setIsValidatingCoupon] = useState(false);
+  const [couponError, setCouponError] = useState('');
+  const [appliedCoupon, setAppliedCoupon] = useState<AppliedCoupon | null>(null);
 
   const [formData, setFormData] = useState<OrderFormData>({
     email: '',
@@ -32,10 +64,106 @@ export default function CheckoutPage() {
     cvv: '',
   });
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Fetch Delivery Rules on Mount
+  useEffect(() => {
+    fetch('/api/delivery-settings')
+      .then((res) => res.json())
+      .then((data) => {
+        if (!data.error) {
+          setDeliverySettings({
+            standardFee: data.standardFee ?? 250,
+            freeDeliveryMin: data.freeDeliveryMin ?? 5000,
+            isFreeDeliveryActive: data.isFreeDeliveryActive ?? true,
+            cityRules: Array.isArray(data.cityRules) ? data.cityRules : [],
+          });
+        }
+      })
+      .catch((err) => console.error('Failed to load delivery settings:', err));
+  }, []);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  // ─── Real-Time Delivery Fee Calculation ───────────────────────────────────
+  const calculateDeliveryFee = (): { fee: number; reason: string } => {
+    // 1. Free Shipping Coupon applied
+    if (appliedCoupon?.isFreeShipping) {
+      return { fee: 0, reason: 'Free Shipping (Coupon Applied)' };
+    }
+
+    // 2. Free Delivery Threshold reached
+    if (deliverySettings.isFreeDeliveryActive && cartTotal >= deliverySettings.freeDeliveryMin) {
+      return {
+        fee: 0,
+        reason: `Complimentary (Orders > PKR ${deliverySettings.freeDeliveryMin.toLocaleString()})`,
+      };
+    }
+
+    // 3. City-Specific Override
+    if (formData.city && deliverySettings.cityRules.length > 0) {
+      const matched = deliverySettings.cityRules.find(
+        (r) => r.city.trim().toLowerCase() === formData.city.trim().toLowerCase()
+      );
+      if (matched) {
+        if (matched.isFree) {
+          return { fee: 0, reason: `Complimentary (${matched.city} Rate)` };
+        }
+        return { fee: matched.fee, reason: `${matched.city} Special Rate` };
+      }
+    }
+
+    // 4. Standard Rate
+    return { fee: deliverySettings.standardFee, reason: 'Standard Delivery' };
+  };
+
+  const currentDelivery = calculateDeliveryFee();
+  const discountTotal = appliedCoupon ? appliedCoupon.discountAmount : 0;
+  const grandTotal = Math.max(0, cartTotal - discountTotal) + currentDelivery.fee;
+
+  // ─── Coupon Validation Handler ────────────────────────────────────────────
+  const handleApplyCoupon = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!couponCodeInput.trim()) return;
+
+    setIsValidatingCoupon(true);
+    setCouponError('');
+
+    try {
+      const res = await fetch('/api/coupons/validate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          code: couponCodeInput.trim(),
+          subtotal: cartTotal,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Invalid coupon code');
+
+      setAppliedCoupon({
+        code: data.code,
+        discountType: data.discountType,
+        discountValue: data.discountValue,
+        discountAmount: data.discountAmount,
+        description: data.description,
+        isFreeShipping: data.isFreeShipping,
+      });
+      setCouponCodeInput('');
+    } catch (err: any) {
+      setCouponError(err.message || 'Invalid coupon code');
+    } finally {
+      setIsValidatingCoupon(false);
+    }
+  };
+
+  const handleRemoveCoupon = () => {
+    setAppliedCoupon(null);
+    setCouponError('');
+  };
+
+  // ─── Submit Order ────────────────────────────────────────────────────────
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -50,6 +178,8 @@ export default function CheckoutPage() {
           customerEmail: formData.email,
           customerPhone: formData.phone || '+92 300 0000000',
           shippingAddress: `${formData.address}, ${formData.city} ${formData.zipCode}`.trim(),
+          city: formData.city,
+          couponCode: appliedCoupon?.code || undefined,
           items: cart.map((item) => ({
             productId: item.id,
             quantity: item.quantity,
@@ -61,6 +191,7 @@ export default function CheckoutPage() {
       if (!res.ok) throw new Error(data.error || 'Failed to place order');
 
       setPlacedOrderNumber(data.orderNumber);
+      setPlacedOrderDetails(data);
       placeOrder(formData);
       setIsSuccess(true);
       window.scrollTo(0, 0);
@@ -75,8 +206,6 @@ export default function CheckoutPage() {
   if (isSuccess) {
     return (
       <main className="min-h-screen bg-[#F7F7F5] text-[#29251D] flex flex-col items-center justify-center p-6 selection:bg-[#C9A66B]/30 selection:text-[#183629]">
-       
-        {/* Minimal Distraction-Free Header */}
         <div className="mb-12">
           <Link href="/" className="font-serif text-3xl tracking-tight text-[#183629] hover:text-[#C9A66B] transition-colors">
             Gul&apos;s
@@ -92,103 +221,109 @@ export default function CheckoutPage() {
           <div className="w-16 h-16 rounded-full bg-[#183629] text-[#C9A66B] flex items-center justify-center mx-auto mb-6 shadow-sm">
             <CheckCircle2 size={36} strokeWidth={1.5} />
           </div>
-          <span className="text-[16px] uppercase tracking-[0.35em] text-[#C9A66B] font-bold block mb-2 font-sans">
-            Order #{placedOrderNumber}
+          <span className="text-[14px] uppercase tracking-[0.35em] text-[#C9A66B] font-bold block mb-2 font-sans">
+            Order Confirmed #{placedOrderNumber}
           </span>
           <h1 className="text-3xl sm:text-4xl font-serif text-[#183629] mb-4">
             Thank You for Your Order
           </h1>
-          <p className="text-[#8C7A5B] mb-10 text-[14px] font-sans leading-relaxed">
-            Your signature order <strong className="text-[#183629]">#{placedOrderNumber}</strong> has been confirmed. Confirmation details and dispatch updates will be sent directly to{' '}
-            <strong className="text-[#183629] font-semibold">{formData.email}</strong>.
+          <p className="font-sans text-[14px] text-[#8C7A5B] leading-relaxed mb-8">
+            An artisan confirmation receipt has been dispatched to{' '}
+            <strong className="text-[#183629]">{formData.email}</strong>. Our Karachi studio is preparing your bespoke package.
           </p>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Button
-              href="/fragrance"
-              className="w-full sm:w-auto tracking-[0.2em] text-[11px] px-8 py-4 bg-[#183629] text-[#F3E9D7] hover:bg-[#11261d] hover:text-[#C9A66B] transition-colors shadow-sm"
-            >
-              CONTINUE SHOPPING
+
+          {placedOrderDetails && (
+            <div className="bg-[#FAF8F5] border border-[#C9A66B]/20 rounded p-4 mb-8 text-left text-xs space-y-2">
+              <div className="flex justify-between">
+                <span className="text-gray-500">Subtotal:</span>
+                <span className="font-semibold text-gray-900">PKR {placedOrderDetails.subtotal?.toLocaleString()}</span>
+              </div>
+              {placedOrderDetails.discountAmount > 0 && (
+                <div className="flex justify-between text-emerald-800">
+                  <span>Coupon Discount ({placedOrderDetails.couponCode}):</span>
+                  <span className="font-semibold">- PKR {placedOrderDetails.discountAmount?.toLocaleString()}</span>
+                </div>
+              )}
+              <div className="flex justify-between">
+                <span className="text-gray-500">Delivery Fee:</span>
+                <span className="font-semibold text-gray-900">
+                  {placedOrderDetails.deliveryFee === 0 ? 'FREE' : `PKR ${placedOrderDetails.deliveryFee?.toLocaleString()}`}
+                </span>
+              </div>
+              <div className="flex justify-between pt-2 border-t border-[#C9A66B]/20 text-sm font-bold text-[#183629]">
+                <span>Total Paid:</span>
+                <span className="text-[#C9A66B]">PKR {placedOrderDetails.totalAmount?.toLocaleString()}</span>
+              </div>
+            </div>
+          )}
+
+          <Link href="/">
+            <Button className="w-full tracking-[0.2em] text-[11px] py-4 bg-[#183629] text-[#F3E9D7] hover:bg-[#11261d] hover:text-[#C9A66B] transition-colors shadow-md justify-center font-bold">
+              RETURN TO BOUTIQUE
             </Button>
-            <Button
-              href="/"
-              className="w-full sm:w-auto tracking-[0.2em] text-[11px] px-8 py-4 bg-transparent border border-[#183629] text-[#183629] hover:bg-[#183629] hover:text-[#F3E9D7] transition-colors shadow-sm"
-            >
-              RETURN HOME
-            </Button>
-          </div>
+          </Link>
         </motion.div>
       </main>
     );
   }
 
-  // ─── Empty Cart Fallback ──────────────────────────────────────────────────
+  // ─── Empty Cart Redirect View ─────────────────────────────────────────────
   if (cart.length === 0) {
     return (
-      <main className="min-h-screen bg-[#F7F7F5] text-[#29251D] flex flex-col items-center justify-center p-6 text-center font-sans">
-        <Link href="/" className="font-serif text-3xl tracking-tight text-[#183629] mb-10 block">
-          Gul&apos;s
-        </Link>
-        <h1 className="text-3xl font-serif mb-4 text-[#183629]">Your bag is empty</h1>
-        <p className="text-[14px] text-[#8C7A5B] mb-10 max-w-sm leading-relaxed mx-auto">
-          Select your signature perfume before proceeding to checkout.
+      <main className="min-h-screen bg-[#F7F7F5] text-[#29251D] flex flex-col items-center justify-center p-6 text-center">
+        <h1 className="font-serif text-3xl text-[#183629] mb-4">Your Shopping Bag is Empty</h1>
+        <p className="font-sans text-[14px] text-[#8C7A5B] max-w-md mb-8">
+          Explore our signature perfumes, handcrafted leather goods, and home essentials.
         </p>
-        <Button 
-          href="/fragrance" 
-          className="tracking-[0.2em] text-[11px] px-10 py-4 bg-[#183629] text-[#F3E9D7] hover:bg-[#11261d] hover:text-[#C9A66B] transition-colors shadow-sm"
-        >
-          EXPLORE FRAGRANCES
-        </Button>
+        <Link href="/fragrance">
+          <Button className="tracking-[0.2em] text-[11px] px-8 py-4 bg-[#183629] text-[#F3E9D7]">
+            EXPLORE COLLECTIONS
+          </Button>
+        </Link>
       </main>
     );
   }
 
-  // Input field classes for refined transparent/border styling
   const inputClass =
-    'w-full bg-transparent border-b border-[#C9A66B]/40 py-3 text-[14px] text-[#29251D] placeholder-[#8C7A5B]/60 focus:outline-none focus:border-[#C9A66B] focus:ring-0 transition-colors font-sans rounded-none';
+    'w-full bg-transparent border-b border-[#C9A66B]/40 focus:border-[#183629] focus:outline-none py-2.5 text-[14px] font-sans text-[#29251D] placeholder-[#8C7A5B]/40 transition-colors';
 
   return (
-    <main className="min-h-screen bg-[#F7F7F5] text-[#29251D] selection:bg-[#C9A66B]/30 selection:text-[#183629] pb-24">
-      {/* ─── Distraction-Free Header (Logo only, centered) ────────────────── */}
-      <header className="w-full border-b border-[#C9A66B]/20 py-6 px-6 bg-white">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
+    <main className="min-h-screen bg-[#F7F7F5] text-[#29251D] selection:bg-[#C9A66B]/30 selection:text-[#183629]">
+      {/* Header */}
+      <header className="border-b border-[#C9A66B]/20 bg-white/80 backdrop-blur-md sticky top-0 z-30">
+        <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
           <Link
             href="/cart"
-            className="inline-flex items-center gap-2 text-[12px] uppercase tracking-widest font-semibold text-[#8C7A5B] hover:text-[#183629] transition-colors font-sans"
+            className="flex items-center space-x-2 text-[#8C7A5B] hover:text-[#183629] transition-colors text-[11px] uppercase tracking-[0.2em] font-semibold"
           >
             <ArrowLeft size={14} />
-            <span className="hidden sm:inline">Return to Bag</span>
+            <span>Return to Bag</span>
           </Link>
-
-          <Link href="/" className="font-serif text-3xl tracking-tight text-[#183629] hover:text-[#C9A66B] transition-colors">
+          <Link href="/" className="font-serif text-2xl tracking-wide text-[#183629]">
             Gul&apos;s
           </Link>
-
-          <div className="flex items-center gap-1.5 text-[12px] uppercase tracking-widest text-[#8C7A5B] font-sans font-medium">
-            <Lock size={12} className="text-[#C9A66B]" />
-            <span className="hidden sm:inline">Secure Checkout</span>
-          </div>
+          <div className="w-20" />
         </div>
       </header>
 
-      {/* ─── Main 2-Column Checkout Layout ────────────────────────────────── */}
-      <div className="max-w-7xl mx-auto px-6 md:px-12 pt-12 lg:pt-16 grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-start">
-        {/* Left Column: Guest Checkout Form */}
+      <div className="max-w-7xl mx-auto px-6 py-12 md:py-16 grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16">
+        {/* Left Column: Checkout Form */}
         <div className="lg:col-span-7">
           <form onSubmit={handleSubmit} className="space-y-12">
             {orderError && (
-              <div className="p-4 bg-red-50 border border-red-200 rounded-sm text-[13px] text-red-600 font-sans">
+              <div className="p-4 bg-red-50 border border-red-200 text-sm text-red-700 rounded-sm">
                 {orderError}
               </div>
             )}
 
-            {/* Step 1: Customer Info */}
+            {/* Step 1: Contact Information */}
             <div>
               <div className="flex items-center gap-3 mb-6 pb-2 border-b border-[#C9A66B]/20">
                 <span className="w-6 h-6 rounded-full bg-[#183629] text-[#C9A66B] flex items-center justify-center text-[11px] font-serif font-bold">
                   1
                 </span>
                 <h2 className="text-[13px] uppercase tracking-[0.2em] font-semibold text-[#183629] font-sans">
-                  Guest Contact Details
+                  Contact Information
                 </h2>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
@@ -200,7 +335,7 @@ export default function CheckoutPage() {
                     required
                     type="email"
                     name="email"
-                    placeholder="For order tracking updates"
+                    placeholder="name@domain.com"
                     value={formData.email}
                     onChange={handleInputChange}
                     className={inputClass}
@@ -208,14 +343,14 @@ export default function CheckoutPage() {
                 </div>
                 <div>
                   <label className="block text-[12px] uppercase tracking-[0.2em] text-[#183629] font-sans font-semibold mb-1">
-                    Phone Number *
+                    Mobile Number (WhatsApp) *
                   </label>
                   <input
                     required
                     type="tel"
                     name="phone"
-                    placeholder="e.g. +92 300 1234567"
-                    value={formData.phone || ''}
+                    placeholder="0300 1234567"
+                    value={formData.phone}
                     onChange={handleInputChange}
                     className={inputClass}
                   />
@@ -230,7 +365,7 @@ export default function CheckoutPage() {
                   2
                 </span>
                 <h2 className="text-[13px] uppercase tracking-[0.2em] font-semibold text-[#183629] font-sans">
-                  Shipping Destination
+                  Shipping Address
                 </h2>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-6">
@@ -242,7 +377,7 @@ export default function CheckoutPage() {
                     required
                     type="text"
                     name="firstName"
-                    placeholder="First name"
+                    placeholder="First Name"
                     value={formData.firstName}
                     onChange={handleInputChange}
                     className={inputClass}
@@ -256,7 +391,7 @@ export default function CheckoutPage() {
                     required
                     type="text"
                     name="lastName"
-                    placeholder="Last name"
+                    placeholder="Last Name"
                     value={formData.lastName}
                     onChange={handleInputChange}
                     className={inputClass}
@@ -280,7 +415,7 @@ export default function CheckoutPage() {
               <div className="grid grid-cols-2 gap-6">
                 <div>
                   <label className="block text-[12px] uppercase tracking-[0.2em] text-[#183629] font-sans font-semibold mb-1">
-                    City *
+                    City (e.g. Karachi) *
                   </label>
                   <input
                     required
@@ -308,67 +443,57 @@ export default function CheckoutPage() {
               </div>
             </div>
 
-            {/* Step 3: Payment */}
+            {/* Step 3: Payment Method */}
             <div>
               <div className="flex items-center gap-3 mb-6 pb-2 border-b border-[#C9A66B]/20">
                 <span className="w-6 h-6 rounded-full bg-[#183629] text-[#C9A66B] flex items-center justify-center text-[11px] font-serif font-bold">
                   3
                 </span>
                 <h2 className="text-[13px] uppercase tracking-[0.2em] font-semibold text-[#183629] font-sans">
-                  Payment
+                  Payment Method
                 </h2>
               </div>
-              <div className="bg-white border border-[#C9A66B]/30 p-5 rounded-sm mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-2 shadow-sm">
-                <span className="font-semibold text-[#183629] uppercase tracking-wider text-[11px]">
-                  Cash on Delivery / Direct Card Processing
-                </span>
-                <span className="text-[12px] uppercase tracking-wider text-[#C9A66B] font-bold flex items-center gap-1.5">
-                  <ShieldCheck size={14} /> Verified Safe
+              <div className="bg-white border border-[#C9A66B]/30 p-5 rounded-sm flex flex-col sm:flex-row sm:items-center justify-between gap-2 shadow-xs">
+                <div>
+                  <span className="font-semibold text-[#183629] uppercase tracking-wider text-[12px] block">
+                    Cash on Delivery (COD) & Express Courier
+                  </span>
+                  <p className="text-[12px] text-[#8C7A5B] mt-0.5">
+                    Pay securely upon receipt at your doorstep across Pakistan.
+                  </p>
+                </div>
+                <span className="text-[12px] uppercase tracking-wider text-[#C9A66B] font-bold flex items-center gap-1.5 shrink-0">
+                  <ShieldCheck size={14} /> 100% Verified
                 </span>
               </div>
-              
             </div>
 
             {/* Submission CTA */}
-            <div className="pt-4">
+            <div className="pt-2">
               <Button
                 type="submit"
                 disabled={isSubmitting}
                 className="w-full tracking-[0.2em] text-[12px] py-4 bg-[#183629] text-[#F3E9D7] hover:bg-[#11261d] hover:text-[#C9A66B] transition-colors shadow-md justify-center font-bold"
               >
-                {isSubmitting ? 'SECURING YOUR ORDER…' : 'PLACE ORDER'}
+                {isSubmitting ? 'SECURING YOUR ORDER…' : `PLACE ORDER — PKR ${grandTotal.toLocaleString()}`}
               </Button>
-            </div>
-
-            {/* Trust Badges */}
-            <div className="flex flex-wrap items-center justify-center gap-6 pt-8 border-t border-[#C9A66B]/20 text-[9px] uppercase tracking-widest text-[#8C7A5B] font-sans font-medium">
-              <div className="flex items-center gap-1.5">
-                <ShieldCheck size={16} className="text-[#183629]" />
-                <span>Encrypted Security</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <Truck size={16} className="text-[#183629]" />
-                <span>Complimentary Delivery</span>
-              </div>
             </div>
           </form>
         </div>
 
         {/* Right Column: Order Summary */}
-        <div className="lg:col-span-5 sticky top-12">
+        <div className="lg:col-span-5 sticky top-28">
           <PremiumCard
             elevation="elevated"
             hoverLift={false}
-            className="bg-white border border-[#C9A66B]/20 p-8 sm:p-10 shadow-soft-md"
+            className="bg-white border border-[#C9A66B]/20 p-6 sm:p-8 shadow-soft-md"
           >
-            <h2 className="font-serif text-2xl text-[#183629] mb-8">
-              Order Summary
-            </h2>
+            <h2 className="font-serif text-2xl text-[#183629] mb-6">Order Summary</h2>
 
             {/* Item List */}
-            <div className="space-y-5 mb-8 max-h-[350px] overflow-y-auto pr-1 hide-scrollbar divide-y divide-[#C9A66B]/20">
+            <div className="space-y-4 mb-6 max-h-[300px] overflow-y-auto pr-1 divide-y divide-[#C9A66B]/20">
               {cart.map((item) => (
-                <div key={item.id} className="pt-4 first:pt-0 flex gap-4 items-center">
+                <div key={item.id} className="pt-3 first:pt-0 flex gap-4 items-center">
                   <div className="relative w-14 aspect-[4/5] bg-white rounded-sm overflow-hidden shrink-0 border border-[#C9A66B]/20">
                     <Image src={item.image} alt={item.name} fill className="object-contain p-1" sizes="56px" />
                   </div>
@@ -385,30 +510,103 @@ export default function CheckoutPage() {
               ))}
             </div>
 
-            {/* Calculations */}
-            <div className="space-y-4 pt-6 border-t border-[#C9A66B]/30 text-[13px] font-sans">
+            {/* ─── Promo / Coupon Code Input Box ───────────────────────────── */}
+            <div className="pt-4 pb-6 border-t border-[#C9A66B]/20">
+              {!appliedCoupon ? (
+                <form onSubmit={handleApplyCoupon} className="space-y-2">
+                  <div className="flex gap-2">
+                    <div className="relative flex-1">
+                      <Tag size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#8C7A5B]" />
+                      <input
+                        type="text"
+                        placeholder="Discount code (e.g. WELCOME10)"
+                        value={couponCodeInput}
+                        onChange={(e) => setCouponCodeInput(e.target.value.toUpperCase())}
+                        className="w-full pl-8 pr-3 py-2 text-xs border border-gray-200 rounded font-mono uppercase outline-none focus:border-[#C9A66B] bg-[#FAF8F5]"
+                      />
+                    </div>
+                    <button
+                      type="submit"
+                      disabled={isValidatingCoupon || !couponCodeInput.trim()}
+                      className="px-4 py-2 bg-[#183629] text-[#F3E9D7] text-xs font-semibold uppercase tracking-wider rounded hover:bg-[#11261d] transition-colors disabled:opacity-50 cursor-pointer"
+                    >
+                      {isValidatingCoupon ? <Loader2 size={13} className="animate-spin" /> : 'Apply'}
+                    </button>
+                  </div>
+                  {couponError && <p className="text-[11px] text-red-600 mt-1">{couponError}</p>}
+                </form>
+              ) : (
+                <div className="p-3 bg-emerald-50 border border-emerald-200 rounded flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Sparkles size={14} className="text-emerald-700 shrink-0" />
+                    <div>
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-mono text-xs font-bold text-emerald-900 bg-white px-1.5 py-0.5 rounded border border-emerald-300">
+                          {appliedCoupon.code}
+                        </span>
+                        <span className="text-xs font-semibold text-emerald-800">
+                          {appliedCoupon.discountType === 'PERCENTAGE'
+                            ? `${appliedCoupon.discountValue}% OFF`
+                            : appliedCoupon.discountType === 'FIXED'
+                            ? `PKR ${appliedCoupon.discountValue} OFF`
+                            : 'Free Shipping'}
+                        </span>
+                      </div>
+                      {appliedCoupon.description && (
+                        <p className="text-[11px] text-emerald-700 mt-0.5">{appliedCoupon.description}</p>
+                      )}
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleRemoveCoupon}
+                    className="p-1 text-emerald-600 hover:text-red-600 cursor-pointer"
+                    title="Remove coupon"
+                  >
+                    <X size={15} />
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Financial Breakdown */}
+            <div className="space-y-3 pt-4 border-t border-[#C9A66B]/30 text-[13px] font-sans">
               <div className="flex justify-between text-[#8C7A5B]">
-                <span>Subtotal</span>
-                <span className="font-medium text-[#29251D]">
-                  PKR {cartTotal.toLocaleString()}
-                </span>
+                <span>Items Subtotal</span>
+                <span className="font-medium text-[#29251D]">PKR {cartTotal.toLocaleString()}</span>
               </div>
+
+              {appliedCoupon && appliedCoupon.discountAmount > 0 && (
+                <div className="flex justify-between text-emerald-800 font-medium">
+                  <span>Coupon Discount ({appliedCoupon.code})</span>
+                  <span>- PKR {appliedCoupon.discountAmount.toLocaleString()}</span>
+                </div>
+              )}
+
               <div className="flex justify-between items-center text-[#8C7A5B]">
-                <span>Delivery & Insurance</span>
-                <span className="text-[#C9A66B] font-semibold uppercase tracking-wider text-[12px]">
-                  Complimentary
+                <div>
+                  <span className="block">Delivery & Insurance</span>
+                  <span className="text-[10px] text-[#8C7A5B]/70 block">{currentDelivery.reason}</span>
+                </div>
+                <span className="font-semibold text-[#183629]">
+                  {currentDelivery.fee === 0 ? (
+                    <span className="text-emerald-800 font-bold uppercase tracking-wider">FREE</span>
+                  ) : (
+                    `PKR ${currentDelivery.fee.toLocaleString()}`
+                  )}
                 </span>
               </div>
-              <div className="pt-5 border-t border-[#C9A66B]/30 flex justify-between items-baseline">
-                <span className="font-serif text-lg text-[#183629]">Total</span>
+
+              <div className="pt-4 border-t border-[#C9A66B]/30 flex justify-between items-baseline">
+                <span className="font-serif text-lg text-[#183629]">Grand Total</span>
                 <span className="font-serif text-2xl font-bold text-[#C9A66B] tracking-wide">
-                  PKR {cartTotal.toLocaleString()}
+                  PKR {grandTotal.toLocaleString()}
                 </span>
               </div>
             </div>
 
-            <div className="mt-8 p-5 bg-[#F7F7F5] rounded-sm text-[12px] text-[#8C7A5B] font-sans leading-relaxed italic border border-[#C9A66B]/20 shadow-inner text-center">
-              &ldquo;Every signature order is hand-packaged with our bespoke emerald presentation seals.&rdquo;
+            <div className="mt-6 p-4 bg-[#F7F7F5] rounded-sm text-[11px] text-[#8C7A5B] font-sans leading-relaxed italic border border-[#C9A66B]/20 text-center">
+              &ldquo;Hand-packaged with our bespoke emerald presentation seals and signature ribbon.&rdquo;
             </div>
           </PremiumCard>
         </div>

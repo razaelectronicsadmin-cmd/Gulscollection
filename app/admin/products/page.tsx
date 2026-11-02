@@ -6,15 +6,16 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { productSchema, type ProductFormValues } from '@/lib/validators';
 import {
   Plus, Pencil, Trash2, X, Package, Loader2, ChevronDown,
-  Search, ChevronLeft, ChevronRight,
+  Search, ChevronLeft, ChevronRight, Images,
 } from 'lucide-react';
 import Image from 'next/image';
 import ConfirmDeleteModal from '@/components/admin/ConfirmDeleteModal';
-import ImageUpload from '@/components/admin/ImageUpload';
+import MultiImageUpload from '@/components/admin/MultiImageUpload';
 
 interface CategoryOption {
   id: number;
   name: string;
+  department?: string;
 }
 
 interface Product {
@@ -26,6 +27,8 @@ interface Product {
   stockQuantity: number;
   categoryId: number;
   imageURL: string | null;
+  images: string | null;
+  department: string;
   topNote: string | null;
   heartNote: string | null;
   baseNote: string | null;
@@ -33,7 +36,7 @@ interface Product {
   isSpecialEdition: boolean;
   specialEditionType: string | null;
   gender: string;
-  category: { id: number; name: string };
+  category: { id: number; name: string; department?: string };
 }
 
 // ─── Form field helpers ─────────────────────────────────────────────────────
@@ -71,10 +74,22 @@ interface ProductFormModalProps {
 function ProductFormModal({ product, categories, onClose, onSuccess }: ProductFormModalProps) {
   const [serverError, setServerError] = useState('');
 
+  // Parse existing multi-image array or fallback to single imageURL
+  const [images, setImages] = useState<string[]>(() => {
+    if (product?.images) {
+      try {
+        const parsed = JSON.parse(product.images);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      } catch {}
+    }
+    return product?.imageURL ? [product.imageURL] : [];
+  });
+
   const {
     register,
     handleSubmit,
     control,
+    setValue,
     watch,
     formState: { errors, isSubmitting },
   } = useForm<ProductFormValues>({
@@ -86,6 +101,7 @@ function ProductFormModal({ product, categories, onClose, onSuccess }: ProductFo
       price: product?.price?.toString() ?? '',
       stockQuantity: product?.stockQuantity?.toString() ?? '0',
       categoryId: product?.categoryId?.toString() ?? '',
+      department: (product?.department as 'Fragrance' | 'Leather' | 'Essentials') ?? 'Fragrance',
       imageURL: product?.imageURL ?? '',
       topNote: product?.topNote ?? '',
       heartNote: product?.heartNote ?? '',
@@ -98,16 +114,29 @@ function ProductFormModal({ product, categories, onClose, onSuccess }: ProductFo
   });
 
   const isSpecialEdition = watch('isSpecialEdition');
+  const selectedDepartment = watch('department');
+
+  // Filter categories to only those belonging to the chosen department
+  const filteredCategories = categories.filter((c) => {
+    if (!c.department) return true;
+    return c.department === selectedDepartment;
+  });
 
   const onSubmit = async (data: ProductFormValues) => {
     setServerError('');
     const url = product ? `/api/admin/products/${product.id}` : '/api/admin/products';
     const method = product ? 'PATCH' : 'POST';
 
+    const payload = {
+      ...data,
+      images,
+      imageURL: images[0] || data.imageURL || '',
+    };
+
     const res = await fetch(url, {
       method,
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
+      body: JSON.stringify(payload),
     });
 
     if (res.ok) {
@@ -147,23 +176,38 @@ function ProductFormModal({ product, categories, onClose, onSuccess }: ProductFo
             <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-4">Basic Info</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Field label="Product Name" error={errors.name?.message} className="sm:col-span-2">
-                <input {...register('name')} placeholder="e.g. Laizon Edition" className={inputCls} />
+                <input {...register('name')} placeholder="e.g. Imperial Bifold Wallet" className={inputCls} />
               </Field>
               <Field label="Brand" error={errors.brand?.message}>
                 <input {...register('brand')} placeholder="e.g. Gul's Collection" className={inputCls} />
               </Field>
+
+              {/* Department Selector */}
+              <Field label="Product Line / Department" error={errors.department?.message}>
+                <div className="relative">
+                  <select {...register('department')} className={`${inputCls} appearance-none pr-10 bg-white`}>
+                    <option value="Fragrance">Fragrance</option>
+                    <option value="Leather">Leather</option>
+                    <option value="Essentials">Essentials</option>
+                  </select>
+                  <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                </div>
+              </Field>
+
+              {/* Dynamic Category Selector */}
               <Field label="Category" error={errors.categoryId?.message}>
                 <div className="relative">
                   <select {...register('categoryId')} className={`${inputCls} appearance-none pr-10 bg-white`}>
                     <option value="">Select a category</option>
-                    {categories.map((c) => (
+                    {(filteredCategories.length > 0 ? filteredCategories : categories).map((c) => (
                       <option key={c.id} value={c.id}>{c.name}</option>
                     ))}
                   </select>
                   <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
                 </div>
               </Field>
-              <Field label="Gender Target" error={errors.gender?.message}>
+
+              <Field label="Target Demographic / Gender" error={errors.gender?.message}>
                 <div className="relative">
                   <select {...register('gender')} className={`${inputCls} appearance-none pr-10 bg-white`}>
                     <option value="Men">Men</option>
@@ -173,6 +217,7 @@ function ProductFormModal({ product, categories, onClose, onSuccess }: ProductFo
                   <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
                 </div>
               </Field>
+
               <Field label="Price (PKR)" error={errors.price?.message}>
                 <input {...register('price')} type="number" step="0.01" min="0" placeholder="2500" className={inputCls} />
               </Field>
@@ -183,54 +228,52 @@ function ProductFormModal({ product, categories, onClose, onSuccess }: ProductFo
                 <textarea
                   {...register('description')}
                   rows={3}
-                  placeholder="A rich, warm fragrance…"
+                  placeholder="Detailed description of craftsmanship, texture, notes or materials…"
                   className={`${inputCls} resize-none`}
                 />
               </Field>
             </div>
           </div>
 
-          {/* Section: Image */}
-          <div>
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-4">Product Image</h3>
-            <Controller
-              name="imageURL"
-              control={control}
-              render={({ field }) => (
-                <div className="space-y-2">
-                  <ImageUpload value={field.value ?? ''} onChange={field.onChange} />
-                  <p className="text-xs text-gray-400">Or enter a URL manually:</p>
-                  <input
-                    type="url"
-                    value={field.value ?? ''}
-                    onChange={(e) => field.onChange(e.target.value)}
-                    placeholder="https://res.cloudinary.com/…"
-                    className={inputCls}
-                  />
-                  {errors.imageURL && <p className="text-xs text-red-500">{errors.imageURL.message}</p>}
-                </div>
-              )}
+          {/* Section: Multiple Images Upload */}
+          <div className="p-4 bg-gray-50/70 rounded-xl border border-gray-200">
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-700 mb-2">
+              Product Pictures (Multiple Supported)
+            </h3>
+            <p className="text-xs text-gray-500 mb-3">
+              Upload multiple angles and product perspectives. You can set any image as the primary catalog cover photo.
+            </p>
+            <MultiImageUpload
+              values={images}
+              onChange={(newImages) => {
+                setImages(newImages);
+                setValue('imageURL', newImages[0] || '');
+              }}
             />
           </div>
 
-          {/* Section: Fragrance Notes */}
+          {/* Section: Formula, Scent Notes or Materials */}
           <div>
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-4">Fragrance Notes</h3>
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-4">
+              {selectedDepartment === 'Fragrance' 
+                ? 'Olfactory Pyramid & Ingredients' 
+                : 'Specifications, Materials & Scent (Optional)'}
+            </h3>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <Field label="Top Note" error={errors.topNote?.message}>
-                <input {...register('topNote')} placeholder="e.g. Bergamot" className={inputCls} />
+              <Field label="Top Note / Key Feature" error={errors.topNote?.message}>
+                <input {...register('topNote')} placeholder={selectedDepartment === 'Fragrance' ? 'e.g. Bergamot' : 'e.g. Full-Grain Cowhide'} className={inputCls} />
               </Field>
-              <Field label="Heart Note" error={errors.heartNote?.message}>
-                <input {...register('heartNote')} placeholder="e.g. Rose" className={inputCls} />
+              <Field label="Heart Note / Hardware" error={errors.heartNote?.message}>
+                <input {...register('heartNote')} placeholder={selectedDepartment === 'Fragrance' ? 'e.g. Rose, Cinnamon' : 'e.g. Solid Brass Zippers'} className={inputCls} />
               </Field>
-              <Field label="Base Note" error={errors.baseNote?.message}>
-                <input {...register('baseNote')} placeholder="e.g. Oud" className={inputCls} />
+              <Field label="Base Note / Dimensions" error={errors.baseNote?.message}>
+                <input {...register('baseNote')} placeholder={selectedDepartment === 'Fragrance' ? 'e.g. Amber, Oud' : 'e.g. 11.5cm x 9.5cm'} className={inputCls} />
               </Field>
-              <Field label="Ingredients" error={errors.ingredients?.message} className="sm:col-span-3">
+              <Field label="Ingredients & Materials" error={errors.ingredients?.message} className="sm:col-span-3">
                 <textarea
                   {...register('ingredients')}
                   rows={2}
-                  placeholder="Alcohol, Parfum, Benzyl Alcohol…"
+                  placeholder="Material composition, care instructions, or fragrance ingredients…"
                   className={`${inputCls} resize-none`}
                 />
               </Field>
@@ -301,6 +344,7 @@ export default function ProductsPage() {
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [stockStatus, setStockStatus] = useState<string>('all');
+  const [departmentFilter, setDepartmentFilter] = useState<'all' | 'Fragrance' | 'Leather' | 'Essentials'>('all');
   const [page, setPage] = useState(1);
   const [pagination, setPagination] = useState({ total: 0, totalPages: 1, limit: 10 });
 
@@ -339,6 +383,7 @@ export default function ProductsPage() {
         page: page.toString(),
         limit: '10',
         search: debouncedSearch,
+        department: departmentFilter,
         categoryId: selectedCategory,
         stockStatus: stockStatus,
       });
@@ -353,7 +398,7 @@ export default function ProductsPage() {
     } finally {
       setLoading(false);
     }
-  }, [page, debouncedSearch, selectedCategory, stockStatus]);
+  }, [page, debouncedSearch, departmentFilter, selectedCategory, stockStatus]);
 
   useEffect(() => {
     startTransition(() => {
@@ -422,6 +467,20 @@ export default function ProductsPage() {
 
           <div className="flex flex-wrap sm:flex-nowrap items-center gap-2">
             <select
+              value={departmentFilter}
+              onChange={(e) => {
+                setDepartmentFilter(e.target.value as any);
+                setPage(1);
+              }}
+              className="px-3 py-2 text-sm border border-gray-200 rounded-lg bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#d4af37] w-full sm:w-auto"
+            >
+              <option value="all">All Departments</option>
+              <option value="Fragrance">Fragrance</option>
+              <option value="Leather">Leather</option>
+              <option value="Essentials">Essentials</option>
+            </select>
+
+            <select
               value={selectedCategory}
               onChange={(e) => {
                 setSelectedCategory(e.target.value);
@@ -430,9 +489,11 @@ export default function ProductsPage() {
               className="px-3 py-2 text-sm border border-gray-200 rounded-lg bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#d4af37] w-full sm:w-auto"
             >
               <option value="all">All Categories</option>
-              {categories.map((c) => (
-                <option key={c.id} value={c.id}>{c.name}</option>
-              ))}
+              {categories
+                .filter((c) => departmentFilter === 'all' || !c.department || c.department === departmentFilter)
+                .map((c) => (
+                  <option key={c.id} value={c.id}>{c.name}</option>
+                ))}
             </select>
 
             <select
@@ -480,6 +541,7 @@ export default function ProductsPage() {
                 <thead>
                   <tr className="bg-gray-50/80 border-b border-gray-100 text-xs uppercase tracking-wider">
                     <th className="text-left px-6 py-3.5 font-semibold text-gray-500">Product</th>
+                    <th className="text-left px-6 py-3.5 font-semibold text-gray-500">Department</th>
                     <th className="text-left px-6 py-3.5 font-semibold text-gray-500">Category</th>
                     <th className="text-right px-6 py-3.5 font-semibold text-gray-500">Price</th>
                     <th className="text-center px-6 py-3.5 font-semibold text-gray-500">Stock</th>
@@ -487,69 +549,100 @@ export default function ProductsPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
-                  {products.map((p) => (
-                    <tr key={p.id} className="hover:bg-gray-50/70 transition-colors">
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-3">
-                          {p.imageURL ? (
-                            <div className="w-10 h-10 relative rounded-md overflow-hidden shrink-0 bg-gray-100 border border-gray-200">
-                              <Image src={p.imageURL} alt={p.name} fill className="object-cover" unoptimized />
+                  {products.map((p) => {
+                    const parsedImages: string[] = (() => {
+                      if (p.images) {
+                        try {
+                          const parsed = JSON.parse(p.images);
+                          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+                        } catch {}
+                      }
+                      return p.imageURL ? [p.imageURL] : [];
+                    })();
+
+                    return (
+                      <tr key={p.id} className="hover:bg-gray-50/70 transition-colors">
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-3">
+                            {p.imageURL ? (
+                              <div className="w-10 h-10 relative rounded-md overflow-hidden shrink-0 bg-gray-100 border border-gray-200">
+                                <Image src={p.imageURL} alt={p.name} fill className="object-cover" unoptimized />
+                              </div>
+                            ) : (
+                              <div className="w-10 h-10 rounded-md bg-gray-100 flex items-center justify-center shrink-0 border border-gray-200 text-gray-400">
+                                <Package size={16} />
+                              </div>
+                            )}
+                            <div>
+                              <div className="font-medium text-gray-900 flex items-center gap-2">
+                                {p.name}
+                                {p.isSpecialEdition && (
+                                  <span className="text-[12px] font-bold uppercase tracking-wider bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded">
+                                    Special
+                                  </span>
+                                )}
+                                {parsedImages.length > 1 && (
+                                  <span className="inline-flex items-center gap-1 text-[11px] font-medium bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded border border-gray-200" title={`${parsedImages.length} images`}>
+                                    <Images size={11} />
+                                    {parsedImages.length}
+                                  </span>
+                                )}
+                              </div>
+                              <div className="text-xs text-gray-400">{p.brand}</div>
                             </div>
-                          ) : (
-                            <div className="w-10 h-10 rounded-md bg-gray-100 flex items-center justify-center shrink-0 border border-gray-200 text-gray-400">
-                              <Package size={16} />
-                            </div>
-                          )}
-                          <div>
-                            <div className="font-medium text-gray-900 flex items-center gap-2">
-                              {p.name}
-                              {p.isSpecialEdition && (
-                                <span className="text-[12px] font-bold uppercase tracking-wider bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded">
-                                  Special
-                                </span>
-                              )}
-                            </div>
-                            <div className="text-xs text-gray-400">{p.brand}</div>
                           </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 text-gray-600 font-medium">{p.category?.name || 'Uncategorized'}</td>
-                      <td className="px-6 py-4 text-right font-semibold text-gray-900">
-                        PKR {parseFloat(p.price).toLocaleString()}
-                      </td>
-                      <td className="px-6 py-4 text-center">
-                        <span
-                          className={`inline-flex items-center justify-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                            p.stockQuantity === 0
-                              ? 'bg-red-50 text-red-700 border border-red-200/60'
-                              : p.stockQuantity <= 10
-                              ? 'bg-amber-50 text-amber-700 border border-amber-200/60'
-                              : 'bg-green-50 text-green-700 border border-green-200/60'
-                          }`}
-                        >
-                          {p.stockQuantity === 0 ? 'Out of stock' : `${p.stockQuantity} in stock`}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 text-right">
-                        <div className="flex items-center justify-end gap-1.5">
-                          <button
-                            onClick={() => openEdit(p)}
-                            className="p-2 rounded-md text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-colors"
-                            title="Edit"
+                        </td>
+                        <td className="px-6 py-4">
+                          <span
+                            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${
+                              p.department === 'Leather'
+                                ? 'bg-amber-100 text-amber-900 border border-amber-200'
+                                : p.department === 'Essentials'
+                                ? 'bg-purple-100 text-purple-900 border border-purple-200'
+                                : 'bg-emerald-100 text-emerald-900 border border-emerald-200'
+                            }`}
                           >
-                            <Pencil size={15} />
-                          </button>
-                          <button
-                            onClick={() => { setDeleteError(''); setDeleteTarget(p); }}
-                            className="p-2 rounded-md text-gray-500 hover:text-red-600 hover:bg-red-50 transition-colors"
-                            title="Delete"
+                            {p.department || 'Fragrance'}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 text-gray-600 font-medium">{p.category?.name || 'Uncategorized'}</td>
+                        <td className="px-6 py-4 text-right font-semibold text-gray-900">
+                          PKR {parseFloat(p.price).toLocaleString()}
+                        </td>
+                        <td className="px-6 py-4 text-center">
+                          <span
+                            className={`inline-flex items-center justify-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                              p.stockQuantity === 0
+                                ? 'bg-red-50 text-red-700 border border-red-200/60'
+                                : p.stockQuantity <= 10
+                                ? 'bg-amber-50 text-amber-700 border border-amber-200/60'
+                                : 'bg-green-50 text-green-700 border border-green-200/60'
+                            }`}
                           >
-                            <Trash2 size={15} />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
+                            {p.stockQuantity === 0 ? 'Out of stock' : `${p.stockQuantity} in stock`}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 text-right">
+                          <div className="flex items-center justify-end gap-1.5">
+                            <button
+                              onClick={() => openEdit(p)}
+                              className="p-2 rounded-md text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-colors"
+                              title="Edit"
+                            >
+                              <Pencil size={15} />
+                            </button>
+                            <button
+                              onClick={() => { setDeleteError(''); setDeleteTarget(p); }}
+                              className="p-2 rounded-md text-gray-500 hover:text-red-600 hover:bg-red-50 transition-colors"
+                              title="Delete"
+                            >
+                              <Trash2 size={15} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
