@@ -37,24 +37,32 @@ export default function AdminSettingsPage() {
   const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
   const [pwdMessage, setPwdMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
-  const fetchProfile = async () => {
-    try {
-      const res = await fetch('/api/admin/settings');
-      const data = await res.json();
-      if (res.ok && data.user) {
-        setCurrentEmail(data.user.email);
-        setAdminName(data.user.name || 'Admin');
-        setRole(data.user.role || 'ADMIN');
-      }
-    } catch (err) {
-      console.error('Failed to load profile:', err);
-    } finally {
-      setIsLoadingProfile(false);
-    }
-  };
-
   useEffect(() => {
-    fetchProfile();
+    let isMounted = true;
+
+    async function loadProfile() {
+      try {
+        const res = await fetch('/api/admin/settings');
+        const data = await res.json();
+        if (isMounted && res.ok && data.user) {
+          setCurrentEmail(data.user.email);
+          setAdminName(data.user.name || 'Admin');
+          setRole(data.user.role || 'ADMIN');
+        }
+      } catch (err) {
+        console.error('Failed to load profile:', err);
+      } finally {
+        if (isMounted) {
+          setIsLoadingProfile(false);
+        }
+      }
+    }
+
+    loadProfile();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const handleUpdateEmail = async (e: React.FormEvent) => {

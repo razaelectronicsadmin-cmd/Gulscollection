@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback, useTransition } from 'react';
-import { useForm, Controller } from 'react-hook-form';
+import { useForm, Controller, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { categorySchema, type CategoryFormValues } from '@/lib/validators';
 import {
@@ -52,7 +52,7 @@ function CategoryFormModal({ mode, category, onClose, onSuccess }: FormModalProp
     },
   });
 
-  const nameValue = watch('name');
+  const nameValue = useWatch({ control, name: 'name' }) ?? '';
   useEffect(() => {
     if (mode === 'create') {
       const generated = nameValue

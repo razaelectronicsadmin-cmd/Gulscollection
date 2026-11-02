@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useTransition, useEffect } from 'react';
+import { useState, useTransition, useEffect, useCallback } from 'react';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import {
   Search, X, ChevronLeft, ChevronRight, Sparkles
@@ -108,20 +108,23 @@ export default function FragranceCatalog({
   ];
 
   // Update URL helper without hard page reloads
-  const updateQueryParams = (updates: Record<string, string | null>) => {
-    const params = new URLSearchParams(searchParams.toString());
-    Object.entries(updates).forEach(([key, value]) => {
-      if (value === null || value === '' || value === 'All') {
-        params.delete(key);
-      } else {
-        params.set(key, value);
-      }
-    });
+  const updateQueryParams = useCallback(
+    (updates: Record<string, string | null>) => {
+      const params = new URLSearchParams(searchParams.toString());
+      Object.entries(updates).forEach(([key, value]) => {
+        if (value === null || value === '' || value === 'All') {
+          params.delete(key);
+        } else {
+          params.set(key, value);
+        }
+      });
 
-    startTransition(() => {
-      router.push(`${pathname}?${params.toString()}`, { scroll: false });
-    });
-  };
+      startTransition(() => {
+        router.push(`${pathname}?${params.toString()}`, { scroll: false });
+      });
+    },
+    [searchParams, pathname, router]
+  );
 
   // Debounced search input
   useEffect(() => {
@@ -131,7 +134,7 @@ export default function FragranceCatalog({
       }
     }, 350);
     return () => clearTimeout(handler);
-  }, [search, initialSearch]);
+  }, [search, initialSearch, updateQueryParams]);
 
   const handleCategoryChange = (val: string) => {
     updateQueryParams({ collection: val === 'All' ? null : val, page: '1' });

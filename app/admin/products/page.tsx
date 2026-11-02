@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback, useTransition } from 'react';
-import { useForm, Controller } from 'react-hook-form';
+import { useForm, Controller, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { productSchema, type ProductFormValues } from '@/lib/validators';
 import {
@@ -113,8 +113,8 @@ function ProductFormModal({ product, categories, onClose, onSuccess }: ProductFo
     },
   });
 
-  const isSpecialEdition = watch('isSpecialEdition');
-  const selectedDepartment = watch('department');
+  const isSpecialEdition = useWatch({ control, name: 'isSpecialEdition' });
+  const selectedDepartment = useWatch({ control, name: 'department' });
 
   // Filter categories to only those belonging to the chosen department
   const filteredCategories = categories.filter((c) => {
