@@ -90,6 +90,13 @@ function CategoryFormModal({ mode, category, onClose, onSuccess }: FormModalProp
     }
   };
 
+  const onInvalid = (fieldErrors: typeof errors) => {
+    const errorMessages = Object.entries(fieldErrors)
+      .map(([key, err]) => `${key}: ${err?.message || 'invalid'}`)
+      .join(', ');
+    setServerError(`Please fix form errors: ${errorMessages}`);
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/50 backdrop-blur-xs overflow-y-auto py-8 px-4">
       <div className="w-full max-w-lg bg-white rounded-xl shadow-2xl border border-gray-100 my-auto">
@@ -109,7 +116,7 @@ function CategoryFormModal({ mode, category, onClose, onSuccess }: FormModalProp
           </div>
         )}
 
-        <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-5">
+        <form onSubmit={handleSubmit(onSubmit, onInvalid)} className="p-6 space-y-5">
           {/* Name */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Category Name</label>
@@ -156,10 +163,10 @@ function CategoryFormModal({ mode, category, onClose, onSuccess }: FormModalProp
                 <div className="space-y-2">
                   <ImageUpload value={field.value ?? ''} onChange={field.onChange} />
                   <input
-                    type="url"
+                    type="text"
                     value={field.value ?? ''}
                     onChange={(e) => field.onChange(e.target.value)}
-                    placeholder="Or enter image URL: https://..."
+                    placeholder="Or enter image URL or local path (/uploads/...)"
                     className="w-full px-3 py-2 text-xs border border-gray-200 rounded-lg focus:ring-1 focus:ring-[#d4af37] outline-none"
                   />
                   {errors.image && <p className="mt-1 text-xs text-red-500">{errors.image.message}</p>}

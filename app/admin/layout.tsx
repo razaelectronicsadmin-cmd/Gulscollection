@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { signOut } from 'next-auth/react';
-import { LayoutDashboard, Package, ShoppingCart, LogOut, Tag, Menu, X, Megaphone, Percent } from 'lucide-react';
+import { LayoutDashboard, Package, ShoppingCart, LogOut, Tag, Menu, X, Megaphone, Percent, Settings } from 'lucide-react';
 
 const navLinks = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard, exact: true },
@@ -13,6 +13,7 @@ const navLinks = [
   { href: '/admin/orders', label: 'Orders', icon: ShoppingCart, exact: false },
   { href: '/admin/promotions', label: 'Promotions & Delivery', icon: Percent, exact: false },
   { href: '/admin/announcement', label: 'Announcement Bar', icon: Megaphone, exact: false },
+  { href: '/admin/settings', label: 'Settings & Security', icon: Settings, exact: false },
 ];
 
 export default function AdminLayout({
@@ -23,9 +24,13 @@ export default function AdminLayout({
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  // Do not render the sidebar on the login page
-  if (pathname === '/admin/login') {
-    return <div className="min-h-screen bg-gray-50">{children}</div>;
+  // Do not render the sidebar on auth recovery pages
+  if (
+    pathname === '/admin/login' ||
+    pathname === '/admin/forgot-password' ||
+    pathname === '/admin/reset-password'
+  ) {
+    return <div className="min-h-screen bg-[#F7F7F5]">{children}</div>;
   }
 
   const isLinkActive = (href: string, exact: boolean) => {

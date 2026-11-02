@@ -270,9 +270,13 @@ export async function sendOrderStatusEmail(payload: EmailOrderPayload): Promise<
 
   try {
     const fromAddress = process.env.SMTP_FROM || '"Gul\'s Fragrances" <orders@gulscollection.com>';
+    const adminEmail = process.env.SMTP_USER;
+
+    // Send to customer, and BCC the store admin on new incoming orders (PENDING)
     await transporter.sendMail({
       from: fromAddress,
       to: payload.customerEmail,
+      ...(payload.status === 'PENDING' && adminEmail && { bcc: adminEmail }),
       subject,
       html,
     });
@@ -283,4 +287,106 @@ export async function sendOrderStatusEmail(payload: EmailOrderPayload): Promise<
     return false;
   }
 }
+
+// ─── Admin Password Reset Email ─────────────────────────────────────────────
+export async function sendPasswordResetEmail(
+  email: string,
+  resetLink: string,
+  userName = 'Admin'
+): Promise<boolean> {
+  const brandGold = '#C9A66B';
+  const brandDark = '#183629';
+  const subject = "Password Reset Request • Gul's Collection Console";
+
+  const html = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <title>${subject}</title>
+    </head>
+    <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #F7F7F5; margin: 0; padding: 20px;">
+      <table width="100%" border="0" cellspacing="0" cellpadding="0">
+        <tr>
+          <td align="center">
+            <table width="600" border="0" cellspacing="0" cellpadding="0" style="background-color: #ffffff; border-radius: 8px; border: 1px solid #e5e7eb; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);">
+              
+              <!-- Header -->
+              <tr>
+                <td style="background-color: ${brandDark}; padding: 36px 40px; text-align: center; border-bottom: 2px solid ${brandGold};">
+                  <h1 style="margin: 0; color: #ffffff; font-size: 26px; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase;">Gul's Collection</h1>
+                  <p style="margin: 6px 0 0; color: ${brandGold}; font-size: 11px; letter-spacing: 0.25em; text-transform: uppercase; font-weight: 600;">Security & Administration</p>
+                </td>
+              </tr>
+
+              <!-- Body -->
+              <tr>
+                <td style="padding: 40px;">
+                  <h2 style="margin: 0 0 16px; font-size: 20px; color: ${brandDark}; font-weight: 700;">Password Reset Request</h2>
+                  <p style="margin: 0 0 16px; font-size: 15px; line-height: 1.6; color: #374151;">
+                    Hello <strong>${userName}</strong>,
+                  </p>
+                  <p style="margin: 0 0 24px; font-size: 15px; line-height: 1.6; color: #374151;">
+                    We received a request to reset the administrative password for your Gul's Collection console account. Click the button below to establish a new secure password:
+                  </p>
+
+                  <!-- CTA Button -->
+                  <div style="text-align: center; margin: 32px 0;">
+                    <a href="${resetLink}" target="_blank" style="display: inline-block; background-color: ${brandDark}; color: #F3E9D7; font-size: 13px; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; padding: 14px 32px; border-radius: 4px; text-decoration: none; border: 1px solid ${brandGold};">
+                      Reset Your Password
+                    </a>
+                  </div>
+
+                  <p style="margin: 0 0 12px; font-size: 13px; line-height: 1.6; color: #6b7280;">
+                    This link is valid for <strong>60 minutes</strong>. If you did not initiate this request, you can safely disregard this email; your existing password will remain unchanged.
+                  </p>
+                  <p style="margin: 0; font-size: 12px; line-height: 1.6; color: #9ca3af; word-break: break-all;">
+                    Direct URL: <a href="${resetLink}" style="color: #4b5563;">${resetLink}</a>
+                  </p>
+                </td>
+              </tr>
+
+              <!-- Footer -->
+              <tr>
+                <td style="background-color: #f9fafb; padding: 24px 40px; text-align: center; border-top: 1px solid #f3f4f6;">
+                  <p style="margin: 0; font-size: 11px; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.1em;">
+                    Gul's Collection &bull; Karachi Atelier &bull; Confidential Administrative Notice
+                  </p>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+    </body>
+    </html>
+  `;
+
+  const transporter = getTransporter();
+
+  if (!transporter) {
+    console.log(`\n======================================================`);
+    console.log(`[PASSWORD RESET EMAIL (Simulated - No SMTP)]`);
+    console.log(`To: ${email}`);
+    console.log(`Reset Link: ${resetLink}`);
+    console.log(`======================================================\n`);
+    return true;
+  }
+
+  try {
+    const fromAddress = process.env.SMTP_FROM || '"Gul\'s Collection" <admin@gulscollection.com>';
+    await transporter.sendMail({
+      from: fromAddress,
+      to: email,
+      subject,
+      html,
+    });
+    console.log(`[PASSWORD RESET EMAIL] Dispatched successfully to ${email}`);
+    return true;
+  } catch (err) {
+    console.error(`[EMAIL ERROR] Failed to send password reset email to ${email}:`, err);
+    return false;
+  }
+}
+
 

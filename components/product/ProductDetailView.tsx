@@ -122,7 +122,7 @@ export default function ProductDetailView({ product }: { product: FormattedProdu
           transition={{ duration: 0.6 }}
           className="w-full lg:w-1/2 flex flex-col"
         >
-          <div className="relative aspect-[4/5] w-full bg-white shadow-soft-elevated rounded-sm overflow-hidden border border-[#C9A66B]/20">
+          <div className="relative aspect-[4/5] w-full bg-transparent rounded-sm overflow-hidden border border-[#C9A66B]/25">
             {/* Promotional Discount Badge */}
             {product.promotion && (
               <div className="absolute top-6 left-6 z-20 bg-[#C9A66B] text-[#183629] text-[11px] uppercase tracking-[0.2em] font-bold px-3 py-1.5 rounded-sm shadow-md">
@@ -153,7 +153,7 @@ export default function ProductDetailView({ product }: { product: FormattedProdu
                   type="button"
                   onClick={() => setActiveImage(img)}
                   className={cn(
-                    "relative w-20 h-20 rounded-md overflow-hidden bg-white shrink-0 border transition-all cursor-pointer",
+                    "relative w-20 h-20 rounded-md overflow-hidden bg-transparent shrink-0 border transition-all cursor-pointer",
                     currentDisplayImage === img
                       ? "border-[#183629] ring-2 ring-[#183629]/30 shadow-xs"
                       : "border-gray-200 opacity-60 hover:opacity-100 hover:border-gray-300"

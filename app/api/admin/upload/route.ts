@@ -1,41 +1,35 @@
+import { writeFile } from 'fs/promises';
 import { NextResponse } from 'next/server';
-import { v2 as cloudinary } from 'cloudinary';
-import { requireAdminSession } from '@/lib/auth-helpers';
+import path from 'path';
+import fs from 'fs';
 
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-});
-
-// POST /api/admin/upload – accepts a FormData file and returns the Cloudinary URL
-export async function POST(req: Request) {
-  const unauth = await requireAdminSession();
-  if (unauth) return unauth;
-
+export async function POST(request: Request) {
   try {
-    const formData = await req.formData();
-    const file = formData.get('file') as File | null;
+    const data = await request.formData();
+    const file: File | null = data.get('file') as unknown as File;
 
-    if (!file) {
-      return NextResponse.json({ error: 'No file provided' }, { status: 400 });
-    }
+    if (!file) return NextResponse.json({ success: false, error: 'No file uploaded' }, { status: 400 });
 
-    // Convert File to base64 data URI
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
-    const base64 = `data:${file.type};base64,${buffer.toString('base64')}`;
 
-    const result = await cloudinary.uploader.upload(base64, {
-      folder: 'guls-fragrances/products',
-      resource_type: 'image',
-      transformation: [{ width: 1200, height: 1200, crop: 'limit', quality: 'auto', fetch_format: 'auto' }],
-    });
+    // Sanitize filename to prevent special character or URI encoding issues
+    const cleanName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+    const filename = `${Date.now()}-${cleanName}`;
+    const uploadDir = path.join(process.cwd(), 'public/uploads');
 
-    return NextResponse.json({ url: result.secure_url });
+    // Agar uploads folder nahi hai toh bana dein
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+
+    const filepath = path.join(uploadDir, filename);
+    await writeFile(filepath, buffer);
+
+    // Database mein save karne ke liye relative URL return karein
+    return NextResponse.json({ success: true, url: `/uploads/${filename}` });
   } catch (error) {
-    console.error('[POST /api/admin/upload]', error);
-    return NextResponse.json({ error: 'Image upload failed' }, { status: 500 });
+    console.error('[POST /api/admin/upload] Error:', error);
+    return NextResponse.json({ success: false, error: 'Upload failed' }, { status: 500 });
   }
 }
-

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { sendOrderStatusEmail } from '@/lib/email';
+import { verifyCaptcha } from '@/lib/captcha';
 
 class OrderValidationError extends Error {
   statusCode: number;
@@ -23,10 +24,92 @@ export async function POST(req: Request) {
       city,
       items,
       couponCode,
+      captchaToken,
+      b_check, // Honeypot anti-bot trap
     } = body;
+
+    // ─── 1. Anti-Bot Honeypot Defense ─────────────────────────────────────────
+    if (b_check) {
+      console.warn('[Security Alert] Bot trap triggered via honeypot field.');
+      return NextResponse.json({ error: 'Suspicious request detected.' }, { status: 400 });
+    }
+
+    // ─── 2. Client IP Extraction ──────────────────────────────────────────────
+    const clientIp =
+      req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
+      req.headers.get('x-real-ip') ||
+      req.headers.get('cf-connecting-ip') ||
+      '127.0.0.1';
+
+    // ─── 3. Google reCAPTCHA Verification ─────────────────────────────────────
+    if (process.env.RECAPTCHA_SECRET_KEY) {
+      const captchaResult = await verifyCaptcha(captchaToken, clientIp);
+      if (!captchaResult.success) {
+        return NextResponse.json(
+          { error: captchaResult.error || 'Please complete the Captcha verification.' },
+          { status: 400 }
+        );
+      }
+    }
 
     if (!customerName || !customerEmail || !customerPhone || !shippingAddress || !Array.isArray(items) || items.length === 0) {
       return NextResponse.json({ error: 'Please provide all required customer and item details.' }, { status: 422 });
+    }
+
+    // ─── 4. IP-Based Sliding Window Rate Limiting (Max 5 orders / hour) ───────
+    const oneHourAgo = new Date(Date.now() - 3600 * 1000);
+    const existingRateLimit = await prisma.orderRateLimit.findFirst({
+      where: { ip: clientIp },
+    });
+
+    if (existingRateLimit) {
+      if (existingRateLimit.windowStart < oneHourAgo) {
+        // Reset window
+        await prisma.orderRateLimit.update({
+          where: { id: existingRateLimit.id },
+          data: { count: 1, windowStart: new Date() },
+        });
+      } else if (existingRateLimit.count >= 5) {
+        console.warn(`[Security Alert] Order rate limit exceeded for IP: ${clientIp}`);
+        return NextResponse.json(
+          {
+            error:
+              'Order limit exceeded for this network (maximum 5 orders per hour). To protect against unauthorized activity, please wait a while before placing additional orders or reach out to customer care.',
+          },
+          { status: 429 }
+        );
+      } else {
+        await prisma.orderRateLimit.update({
+          where: { id: existingRateLimit.id },
+          data: { count: { increment: 1 } },
+        });
+      }
+    } else {
+      await prisma.orderRateLimit.create({
+        data: { ip: clientIp, count: 1, windowStart: new Date() },
+      });
+    }
+
+    // ─── 5. Phone-Based Anti-Flooding Protection (Max 3 orders / 15 mins) ─────
+    const cleanPhone = customerPhone.replace(/\D/g, '');
+    if (cleanPhone.length >= 7) {
+      const fifteenMinsAgo = new Date(Date.now() - 15 * 60 * 1000);
+      const recentPhoneOrders = await prisma.order.count({
+        where: {
+          customerPhone: { contains: cleanPhone.slice(-7) },
+          createdAt: { gte: fifteenMinsAgo },
+        },
+      });
+
+      if (recentPhoneOrders >= 3) {
+        return NextResponse.json(
+          {
+            error:
+              'Multiple recent orders detected with this contact number. Please wait a few moments before placing another order.',
+          },
+          { status: 429 }
+        );
+      }
     }
 
     // Generate unique order number e.g. GUL-2026-98432

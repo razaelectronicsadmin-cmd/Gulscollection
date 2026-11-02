@@ -1,5 +1,16 @@
 import { z } from 'zod';
 
+// Helper validator for image paths (allows http/https URLs or local relative paths like /uploads/..., /images/...)
+const imagePathSchema = z
+  .string()
+  .max(1000)
+  .refine(
+    (val) => !val || val.trim() === '' || val.startsWith('/') || /^https?:\/\//i.test(val),
+    { message: 'Must be a valid URL (http/https) or local file path (e.g. /uploads/...)' }
+  )
+  .optional()
+  .or(z.literal(''));
+
 // ─── Category ──────────────────────────────────────────────────────────────
 export const categorySchema = z.object({
   name: z
@@ -11,7 +22,7 @@ export const categorySchema = z.object({
     .min(2, 'Slug must be at least 2 characters')
     .max(80, 'Slug must be under 80 characters')
     .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'Slug must be lowercase letters, numbers, and hyphens only'),
-  image: z.string().url('Must be a valid URL').optional().or(z.literal('')),
+  image: imagePathSchema,
   department: z.enum(['Fragrance', 'Leather', 'Essentials']),
   isActive: z.boolean(),
 });
@@ -35,7 +46,7 @@ export const productSchema = z.object({
     .string()
     .min(1, 'Category is required')
     .refine((v) => !isNaN(parseInt(v)), { message: 'Invalid category' }),
-  imageURL: z.string().url('Must be a valid URL').optional().or(z.literal('')),
+  imageURL: imagePathSchema,
   images: z.array(z.string()).optional(),
   department: z.enum(['Fragrance', 'Leather', 'Essentials']),
   topNote: z.string().max(200).optional().or(z.literal('')),

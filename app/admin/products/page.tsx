@@ -151,6 +151,13 @@ function ProductFormModal({ product, categories, onClose, onSuccess }: ProductFo
     }
   };
 
+  const onInvalid = (fieldErrors: typeof errors) => {
+    const errorMessages = Object.entries(fieldErrors)
+      .map(([key, err]) => `${key}: ${err?.message || 'invalid'}`)
+      .join(', ');
+    setServerError(`Please fix form errors: ${errorMessages}`);
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/50 backdrop-blur-xs overflow-y-auto py-6 sm:py-10 px-4">
       <div className="w-full max-w-2xl bg-white rounded-xl shadow-2xl border border-gray-100 my-auto">
@@ -164,7 +171,7 @@ function ProductFormModal({ product, categories, onClose, onSuccess }: ProductFo
           </button>
         </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-6">
+        <form onSubmit={handleSubmit(onSubmit, onInvalid)} className="p-6 space-y-6">
           {serverError && (
             <div className="p-3 bg-red-50 border border-red-100 text-sm text-red-600 rounded-lg">
               {serverError}
@@ -247,9 +254,14 @@ function ProductFormModal({ product, categories, onClose, onSuccess }: ProductFo
               values={images}
               onChange={(newImages) => {
                 setImages(newImages);
-                setValue('imageURL', newImages[0] || '');
+                setValue('imageURL', newImages[0] || '', { shouldValidate: true, shouldDirty: true });
               }}
             />
+            {errors.imageURL && (
+              <p className="mt-2 text-xs text-red-500 font-medium">
+                {errors.imageURL.message}
+              </p>
+            )}
           </div>
 
           {/* Section: Formula, Scent Notes or Materials */}

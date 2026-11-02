@@ -12,6 +12,7 @@ import { useStore } from '@/context/StoreContext';
 import type { OrderFormData } from '@/context/StoreContext';
 import { Button } from '@/components/ui/Button';
 import PremiumCard from '@/components/ui/PremiumCard';
+import ReCaptcha from '@/components/common/ReCaptcha';
 
 interface DeliverySettingsData {
   standardFee: number;
@@ -36,6 +37,8 @@ export default function CheckoutPage() {
   const [placedOrderDetails, setPlacedOrderDetails] = useState<any>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [orderError, setOrderError] = useState('');
+  const [captchaToken, setCaptchaToken] = useState('');
+  const [honeypot, setHoneypot] = useState('');
 
   // Delivery settings
   const [deliverySettings, setDeliverySettings] = useState<DeliverySettingsData>({
@@ -166,8 +169,14 @@ export default function CheckoutPage() {
   // ─── Submit Order ────────────────────────────────────────────────────────
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmitting(true);
     setOrderError('');
+
+    if (process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY && !captchaToken) {
+      setOrderError('Please complete the security Captcha verification before placing your order.');
+      return;
+    }
+
+    setIsSubmitting(true);
 
     try {
       const res = await fetch('/api/orders', {
@@ -180,6 +189,8 @@ export default function CheckoutPage() {
           shippingAddress: `${formData.address}, ${formData.city} ${formData.zipCode}`.trim(),
           city: formData.city,
           couponCode: appliedCoupon?.code || undefined,
+          captchaToken,
+          b_check: honeypot,
           items: cart.map((item) => ({
             productId: item.id,
             quantity: item.quantity,
@@ -467,6 +478,42 @@ export default function CheckoutPage() {
                 </span>
               </div>
             </div>
+
+            {/* Anti-Bot Honeypot Field */}
+            <div style={{ position: 'absolute', left: '-9999px', opacity: 0, height: 0, overflow: 'hidden' }} aria-hidden="true">
+              <input
+                type="text"
+                name="b_check"
+                value={honeypot}
+                onChange={(e) => setHoneypot(e.target.value)}
+                tabIndex={-1}
+                autoComplete="off"
+              />
+            </div>
+
+            {/* Security Captcha Verification */}
+            <div className="bg-white border border-[#C9A66B]/25 p-4 rounded-sm shadow-xs space-y-2">
+              <div className="flex items-center gap-2">
+                <ShieldCheck size={16} className="text-[#C9A66B]" />
+                <span className="text-[11px] font-bold uppercase tracking-wider text-[#183629]">
+                  Security Verification
+                </span>
+              </div>
+              <ReCaptcha
+                onVerify={(token) => {
+                  setCaptchaToken(token);
+                  setOrderError('');
+                }}
+                onExpire={() => setCaptchaToken('')}
+              />
+            </div>
+
+            {/* Error Notification */}
+            {orderError && (
+              <div className="p-3 bg-red-50 border border-red-200 text-red-700 text-xs rounded-sm font-medium leading-relaxed">
+                {orderError}
+              </div>
+            )}
 
             {/* Submission CTA */}
             <div className="pt-2">
