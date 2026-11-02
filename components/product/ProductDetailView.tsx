@@ -141,6 +141,7 @@ export default function ProductDetailView({ product }: { product: FormattedProdu
               priority
               className="object-contain object-center scale-95 transition-all duration-300"
               sizes="(max-width: 1024px) 100vw, 50vw"
+              unoptimized={typeof currentDisplayImage === 'string' && currentDisplayImage.startsWith('/uploads/')}
             />
           </div>
 
@@ -166,6 +167,7 @@ export default function ProductDetailView({ product }: { product: FormattedProdu
                     fill
                     className="object-cover"
                     sizes="80px"
+                    unoptimized={typeof img === 'string' && img.startsWith('/uploads/')}
                   />
                 </button>
               ))}

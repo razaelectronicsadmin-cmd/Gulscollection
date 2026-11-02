@@ -19,16 +19,28 @@ export interface EmailOrderPayload {
 
 // Create reusable transporter with SMTP config or fallback to mock
 function getTransporter() {
-  const host = process.env.SMTP_HOST;
-  const user = process.env.SMTP_USER;
-  const pass = process.env.SMTP_PASS;
+  const host = (process.env.SMTP_HOST || '').trim();
+  let user = (process.env.SMTP_USER || '').trim();
+  const pass = (process.env.SMTP_PASS || '').trim().replace(/\s+/g, '');
+  const port = parseInt(process.env.SMTP_PORT || '587');
+
+  // Auto-heal common typo: if user entered "@mail.com" instead of "@gmail.com" on Gmail SMTP
+  if (host.includes('gmail.com') && user.toLowerCase().endsWith('@mail.com')) {
+    user = user.replace(/@mail\.com$/i, '@gmail.com');
+  }
 
   if (host && user && pass) {
     return nodemailer.createTransport({
       host,
-      port: parseInt(process.env.SMTP_PORT || '587'),
-      secure: process.env.SMTP_SECURE === 'true',
+      port,
+      secure: port === 465 || process.env.SMTP_SECURE === 'true',
       auth: { user, pass },
+      tls: {
+        rejectUnauthorized: false,
+      },
+      connectionTimeout: 10000,
+      greetingTimeout: 10000,
+      socketTimeout: 15000,
     });
   }
 
@@ -269,8 +281,17 @@ export async function sendOrderStatusEmail(payload: EmailOrderPayload): Promise<
   }
 
   try {
-    const fromAddress = process.env.SMTP_FROM || '"Gul\'s Fragrances" <orders@gulscollection.com>';
-    const adminEmail = process.env.SMTP_USER;
+    let fromAddress = (process.env.SMTP_FROM || '').trim();
+    if (!fromAddress) {
+      fromAddress = '"Gul\'s Fragrances" <orders@gulscollection.com>';
+    } else if (!fromAddress.includes('<') && fromAddress.includes('@')) {
+      fromAddress = `"Gul's Collection" <${fromAddress}>`;
+    }
+
+    let adminEmail = (process.env.SMTP_USER || '').trim();
+    if (adminEmail.toLowerCase().endsWith('@mail.com')) {
+      adminEmail = adminEmail.replace(/@mail\.com$/i, '@gmail.com');
+    }
 
     // Send to customer, and BCC the store admin on new incoming orders (PENDING)
     await transporter.sendMail({
@@ -374,7 +395,13 @@ export async function sendPasswordResetEmail(
   }
 
   try {
-    const fromAddress = process.env.SMTP_FROM || '"Gul\'s Collection" <admin@gulscollection.com>';
+    let fromAddress = (process.env.SMTP_FROM || '').trim();
+    if (!fromAddress) {
+      fromAddress = '"Gul\'s Collection" <admin@gulscollection.com>';
+    } else if (!fromAddress.includes('<') && fromAddress.includes('@')) {
+      fromAddress = `"Gul's Collection" <${fromAddress}>`;
+    }
+
     await transporter.sendMail({
       from: fromAddress,
       to: email,

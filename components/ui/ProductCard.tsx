@@ -93,6 +93,7 @@ export function ProductCard({
             fill
             sizes="(max-width: 768px) 100vw, 33vw"
             className="object-contain object-bottom drop-shadow-xl transition-transform duration-500 group-hover:scale-105"
+            unoptimized={typeof imageSrc === 'string' && imageSrc.startsWith('/uploads/')}
           />
         </div>
       </div>

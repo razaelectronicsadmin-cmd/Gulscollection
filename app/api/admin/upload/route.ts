@@ -26,6 +26,15 @@ export async function POST(request: Request) {
     const filepath = path.join(uploadDir, filename);
     await writeFile(filepath, buffer);
 
+    // If standalone build output exists, mirror file there as well to ensure static serving
+    const standaloneUploadDir = path.join(process.cwd(), '.next', 'standalone', 'public', 'uploads');
+    if (fs.existsSync(path.dirname(standaloneUploadDir))) {
+      if (!fs.existsSync(standaloneUploadDir)) {
+        fs.mkdirSync(standaloneUploadDir, { recursive: true });
+      }
+      await writeFile(path.join(standaloneUploadDir, filename), buffer);
+    }
+
     // Database mein save karne ke liye relative URL return karein
     return NextResponse.json({ success: true, url: `/uploads/${filename}` });
   } catch (error) {

@@ -6,13 +6,16 @@ export async function middleware(req: NextRequest) {
   // Try fetching the token manually
   const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
   const isAuth = !!token;
-  const isAuthPage = req.nextUrl.pathname.startsWith('/admin/login');
+  const isPublicAdminPage =
+    req.nextUrl.pathname.startsWith('/admin/login') ||
+    req.nextUrl.pathname.startsWith('/admin/forgot-password') ||
+    req.nextUrl.pathname.startsWith('/admin/reset-password');
 
-  if (isAuthPage) {
+  if (isPublicAdminPage) {
     if (isAuth) {
       return NextResponse.redirect(new URL('/admin', req.url));
     }
-    return null;
+    return NextResponse.next();
   }
 
   if (!isAuth) {
