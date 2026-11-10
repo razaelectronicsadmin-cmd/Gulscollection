@@ -32,14 +32,22 @@ export default async function CollectionsShowcase() {
     }),
   ]);
 
+  // PDF se extract ki gayi Editions ki premium information
+  const editionsData = [
+    { title: "Edition One", subtitle: "Masculine Energy", target: "For The Modern Gentleman" },
+    { title: "Edition Two", subtitle: "Pour Elle", target: "For Her" },
+    { title: "Edition Three", subtitle: "N°01_For All", target: "Unisex" },
+    { title: "Edition Four", subtitle: "Arabesques", target: "The Oud Collection" }
+  ];
+
   return (
     <section className="relative w-full py-24 bg-brand-offwhite overflow-hidden">
       
-     {/* Background Pattern Overlay - Debugging Mode */}
+      {/* Background Pattern Overlay */}
       <div 
-        className="absolute inset-0 z-0 opacity-75 pointer-events-none" /* Opacity 50% ki hai check karne ke liye */
+        className="absolute inset-0 z-0 opacity-75 pointer-events-none"
         style={{ 
-          backgroundImage: "url('/images/pattern-1.png')", /* Extension wapas .png ki hai */
+          backgroundImage: "url('/images/pattern-1.png')",
           backgroundRepeat: 'repeat',
           backgroundSize: '300px'
         }}
@@ -47,45 +55,75 @@ export default async function CollectionsShowcase() {
 
       <div className="max-w-[1400px] mx-auto px-6 relative z-10 flex flex-col items-center">
         
-        {/* --- Top Section: 4 Editions Cards --- */}
-        <div className="text-center mb-12">
-          <p className="font-sans text-[16px] tracking-[0.25em] text-[#C9A66B] uppercase font-bold mb-3">Our Collection</p>
-          <h2 className="font-serif text-[32px] md:text-[40px] font-bold text-[#C9A66B] uppercase leading-tight">Edition One To Four <br /> Crafted With Distinction</h2>
-          <p className="font-sans text-[14px] tracking-[0.1em] text-[#8C7A5B] uppercase">Curated Masterpieces</p>
+        {/* --- Top Section: Header --- */}
+        <div className="text-center mb-16">
+          <p className="font-sans text-[14px] tracking-[0.25em] text-[#C9A66B] uppercase font-bold mb-4">Our Collection</p>
+          <h2 className="font-serif text-[32px] md:text-[40px] font-bold text-[#29251D] uppercase leading-tight mb-3">
+            Edition One To Four <br /> <span className="text-[#C9A66B]">Crafted With Distinction</span>
+          </h2>
+          <p className="font-sans text-[13px] tracking-[0.15em] text-[#8C7A5B] uppercase">Curated Masterpieces</p>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 w-full max-w-5xl mx-auto mb-32">
-          {categories.map((category) => (
-            <Link 
-              href={`#category-${category.id}`} 
-              key={category.id} 
-              className="relative aspect-square shadow-soft-md w-full border border-[#D8C6A5]/30 block hover:-translate-y-2 transition-transform duration-300"
-            >
-              <Image 
-                src={category.image || '/images/masculine-energy.png'} 
-                alt={category.name} 
-                fill 
-                className="object-cover" 
-              />
-              <div className="absolute inset-0 bg-black/20 hover:bg-transparent transition-colors duration-300" />
-            </Link>
-          ))}
+        {/* --- Premium Luxury Cards Grid --- */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 w-full max-w-[1200px] mx-auto mb-32">
+          {categories.map((category, index) => {
+            const info = editionsData[index];
+            return (
+              <Link 
+                href={`/fragrance?department=Fragrance&category=${category.slug}`}
+                key={category.id} 
+                className="group relative flex flex-col items-center justify-center p-8 min-h-[280px] overflow-hidden bg-gradient-to-b from-[#161410] to-[#0A0907] shadow-xl hover:shadow-2xl transition-all duration-500 hover:-translate-y-2"
+              >
+                {/* Outer Gold Accent Border */}
+                <div className="absolute inset-0 border border-[#C9A66B]/20 group-hover:border-[#C9A66B]/60 transition-colors duration-500" />
+                
+                {/* Inner Plaque Border (Perfume Label Effect) */}
+                <div className="absolute inset-3 border border-[#D8C6A5]/10 group-hover:border-[#C9A66B]/30 transition-colors duration-500 pointer-events-none" />
+
+                {/* Subtle Radial Glow on Hover */}
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(201,166,107,0.15)_0%,transparent_60%)] opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+                
+                <div className="relative z-10 flex flex-col items-center text-center w-full">
+                  <span className="flex items-center gap-3 font-sans text-[10px] tracking-[0.3em] text-[#C9A66B] uppercase font-bold mb-5">
+                    <span className="w-4 h-[1px] bg-[#C9A66B]/50"></span>
+                    {info?.title || `Edition 0${index + 1}`}
+                    <span className="w-4 h-[1px] bg-[#C9A66B]/50"></span>
+                  </span>
+                  
+                  <h3 className="font-serif text-[22px] font-bold text-[#FDFBF7] uppercase mb-3 leading-snug group-hover:scale-105 transition-transform duration-500">
+                    {info?.subtitle || category.name}
+                  </h3>
+                  
+                  <p className="font-serif italic text-[13px] tracking-[0.05em] text-[#A6977D] mb-8">
+                    {info?.target || 'Premium Collection'}
+                  </p>
+                  
+                  {/* Minimalist Explore Button */}
+                  <div className="mt-auto">
+                    <span className="text-[10px] font-bold tracking-[0.2em] text-[#D8C6A5] border-b border-transparent group-hover:border-[#C9A66B] group-hover:text-[#C9A66B] transition-all duration-300 pb-1">
+                      EXPLORE EDITION
+                    </span>
+                  </div>
+                </div>
+              </Link>
+            );
+          })}
         </div>
 
         {/* --- Signature Fragrances Main Header --- */}
         <div className="text-center w-full mb-16">
-          <p className="font-sans text-[16px] tracking-[0.25em] text-[#C9A66B] uppercase font-bold mb-3">Collection</p>
-          <h2 className="font-serif text-[36px] md:text-[45px] font-bold text-[#C9A66B] uppercase mb-2">Signature Fragrances</h2>
-          <p className="font-serif italic text-[16px] text-[#29251D] font-medium">Decades by Gul&apos;s</p>
+          <p className="font-sans text-[14px] tracking-[0.25em] text-[#C9A66B] uppercase font-bold mb-4">Collection</p>
+          <h2 className="font-serif text-[36px] md:text-[45px] font-bold text-[#29251D] uppercase mb-3">Signature Fragrances</h2>
+          <p className="font-serif italic text-[16px] text-[#8C7A5B] font-medium">Decades by Gul&apos;s</p>
         </div>
 
         {/* --- Dynamic Products Sections by Category --- */}
         {categories.map((category) => (
-          <div key={category.id} id={`category-${category.id}`} className="w-full max-w-6xl mx-auto mb-20 scroll-mt-24">
-            <div className="border-b border-[#D8C6A5]/50 pb-2 mb-8 flex flex-col sm:flex-row sm:items-end gap-2 sm:gap-4">
-              <h3 className="font-serif text-[24px] font-bold text-[#C9A66B] uppercase">{category.name}</h3>
-              <span className="font-sans text-[12px] tracking-[0.1em] text-[#8C7A5B] uppercase mb-1">
-                {category.slug.replace(/-/g, ' ')}
+          <div key={category.id} id={`category-${category.id}`} className="w-full max-w-[1200px] mx-auto mb-24 scroll-mt-24">
+            <div className="border-b border-[#D8C6A5]/50 pb-3 mb-10 flex flex-col sm:flex-row sm:items-baseline gap-2 sm:gap-4">
+              <h3 className="font-serif text-[28px] font-bold text-[#29251D] uppercase">{category.name}</h3>
+              <span className="font-sans text-[12px] tracking-[0.2em] text-[#C9A66B] uppercase font-bold">
+                / {category.slug.replace(/-/g, ' ')}
               </span>
             </div>
             
@@ -145,7 +183,9 @@ export default async function CollectionsShowcase() {
                   );
                 })
               ) : (
-                <p className="text-[#8C7A5B] font-sans text-sm italic col-span-full">No products found in this edition yet.</p>
+                <div className="col-span-full py-10 flex justify-center border border-[#D8C6A5]/30 bg-white/50">
+                  <p className="text-[#8C7A5B] font-serif italic text-[15px]">Masterpieces for this edition are currently being crafted.</p>
+                </div>
               )}
             </div>
           </div>

@@ -73,8 +73,7 @@ export default function ContactPage() {
                     <h3 className="text-[11px] uppercase tracking-[0.2em] font-semibold text-[#183629]">
                       Direct Email
                     </h3>
-                    <p className="text-[13px] text-[#8C7A5B] mt-1 hover:text-[#C9A66B] transition-colors cursor-pointer">support@gulscollection.com</p>
-                    <p className="text-[13px] text-[#8C7A5B] hover:text-[#C9A66B] transition-colors cursor-pointer">orders@gulscollection.com</p>
+                    <p className="text-[13px] text-[#8C7A5B] mt-1 hover:text-[#C9A66B] transition-colors cursor-pointer">gulscollection.2617@gmail.com</p>
                   </div>
                 </div>
 
