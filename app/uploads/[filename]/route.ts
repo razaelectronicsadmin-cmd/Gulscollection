@@ -25,23 +25,11 @@ export async function GET(_req: Request, { params }: RouteParams) {
     const ext = path.extname(cleanFilename).toLowerCase();
     const contentType = MIME_TYPES[ext] || 'application/octet-stream';
 
-    // Candidate locations where uploaded files can reside
-    const candidatePaths = [
-      path.join(process.cwd(), 'public', 'uploads', cleanFilename),
-      path.join(process.cwd(), 'uploads', cleanFilename),
-      path.join(process.cwd(), '..', 'public', 'uploads', cleanFilename),
-      path.join(process.cwd(), '.next', 'standalone', 'public', 'uploads', cleanFilename),
-    ];
+    // Hostinger ka permanent absolute path jahan pictures save ho rahi hain
+    const permanentDir = '/home/u175598648/domains/gulscollection.com/public_html/uploads';
+    const foundPath = path.join(permanentDir, cleanFilename);
 
-    let foundPath: string | null = null;
-    for (const candidate of candidatePaths) {
-      if (fs.existsSync(candidate)) {
-        foundPath = candidate;
-        break;
-      }
-    }
-
-    if (!foundPath) {
+    if (!fs.existsSync(foundPath)) {
       return new NextResponse('Image not found', { status: 404 });
     }
 
@@ -59,4 +47,3 @@ export async function GET(_req: Request, { params }: RouteParams) {
     return new NextResponse('Internal Server Error', { status: 500 });
   }
 }
-

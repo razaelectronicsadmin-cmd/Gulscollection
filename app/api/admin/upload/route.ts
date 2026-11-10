@@ -1,7 +1,6 @@
 import { writeFile } from 'fs/promises';
 import { NextResponse } from 'next/server';
 import path from 'path';
-import fs from 'fs';
 
 export async function POST(request: Request) {
   try {
@@ -13,27 +12,16 @@ export async function POST(request: Request) {
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
-    // Sanitize filename to prevent special character or URI encoding issues
+    // Sanitize filename
     const cleanName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
     const filename = `${Date.now()}-${cleanName}`;
-    const uploadDir = path.join(process.cwd(), 'public/uploads');
 
-    // Agar uploads folder nahi hai toh bana dein
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
-    }
-
+    // Hostinger ka exact permanent absolute path (Yeh folder Git deployment se bahar hai)
+    const uploadDir = '/home/u175598648/domains/gulscollection.com/public_html/uploads';
     const filepath = path.join(uploadDir, filename);
-    await writeFile(filepath, buffer);
 
-    // If standalone build output exists, mirror file there as well to ensure static serving
-    const standaloneUploadDir = path.join(process.cwd(), '.next', 'standalone', 'public', 'uploads');
-    if (fs.existsSync(path.dirname(standaloneUploadDir))) {
-      if (!fs.existsSync(standaloneUploadDir)) {
-        fs.mkdirSync(standaloneUploadDir, { recursive: true });
-      }
-      await writeFile(path.join(standaloneUploadDir, filename), buffer);
-    }
+    // File ko direct permanent path par write karein
+    await writeFile(filepath, buffer);
 
     // Database mein save karne ke liye relative URL return karein
     return NextResponse.json({ success: true, url: `/uploads/${filename}` });
