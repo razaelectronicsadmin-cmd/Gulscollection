@@ -1,19 +1,19 @@
-import { NextResponse } from 'next/server';
-import fs from 'fs';
-import path from 'path';
+import { NextResponse } from "next/server";
+import fs from "fs";
+import path from "path";
 
 interface RouteParams {
   params: Promise<{ filename: string }>;
 }
 
 const MIME_TYPES: Record<string, string> = {
-  '.png': 'image/png',
-  '.jpg': 'image/jpeg',
-  '.jpeg': 'image/jpeg',
-  '.webp': 'image/webp',
-  '.gif': 'image/gif',
-  '.svg': 'image/svg+xml',
-  '.avif': 'image/avif',
+  ".png": "image/png",
+  ".jpg": "image/jpeg",
+  ".jpeg": "image/jpeg",
+  ".webp": "image/webp",
+  ".gif": "image/gif",
+  ".svg": "image/svg+xml",
+  ".avif": "image/avif",
 };
 
 export async function GET(_req: Request, { params }: RouteParams) {
@@ -23,14 +23,21 @@ export async function GET(_req: Request, { params }: RouteParams) {
     // Prevent directory traversal attacks
     const cleanFilename = path.basename(filename);
     const ext = path.extname(cleanFilename).toLowerCase();
-    const contentType = MIME_TYPES[ext] || 'application/octet-stream';
+    const contentType = MIME_TYPES[ext] || "application/octet-stream";
 
     // Hostinger ka permanent absolute path jahan pictures save ho rahi hain
-    const permanentDir = '/home/u175598648/domains/gulscollection.com/public_html/uploads';
+    let permanentDir;
+    if (process.env.NODE_ENV === "development") {
+      permanentDir = path.join(process.cwd(), "public", "uploads");
+    } else {
+      // Naya safe path jo Git wipe se bahar hai
+      permanentDir =
+        "/home/u175598648/domains/gulscollection.com/storage_uploads";
+    }
     const foundPath = path.join(permanentDir, cleanFilename);
 
     if (!fs.existsSync(foundPath)) {
-      return new NextResponse('Image not found', { status: 404 });
+      return new NextResponse("Image not found", { status: 404 });
     }
 
     const fileBuffer = await fs.promises.readFile(foundPath);
@@ -38,12 +45,12 @@ export async function GET(_req: Request, { params }: RouteParams) {
     return new NextResponse(fileBuffer, {
       status: 200,
       headers: {
-        'Content-Type': contentType,
-        'Cache-Control': 'public, max-age=31536000, immutable',
+        "Content-Type": contentType,
+        "Cache-Control": "public, max-age=31536000, immutable",
       },
     });
   } catch (error) {
-    console.error('[GET /uploads/:filename] Error serving image:', error);
-    return new NextResponse('Internal Server Error', { status: 500 });
+    console.error("[GET /uploads/:filename] Error serving image:", error);
+    return new NextResponse("Internal Server Error", { status: 500 });
   }
 }
