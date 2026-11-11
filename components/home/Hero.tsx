@@ -27,7 +27,7 @@ const slides: Slide[] = [
     subtitle: 'COLLECTION',
     buttonText: 'SHOP NOW',
     buttonLink: '/fragrance',
-    image: 'https://images.unsplash.com/photo-1547887537-6158d64c35b3?q=80&w=1600&auto=format&fit=crop',
+    image: '/images/cover.jpeg',
   },
   {
     id: 2,
@@ -36,7 +36,7 @@ const slides: Slide[] = [
     subtitle: 'ATELIER',
     buttonText: 'EXPLORE LEATHER',
     buttonLink: '/fragrance?department=Leather',
-    image: 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?q=80&w=1600&auto=format&fit=crop',
+    image: '/images/cover-1.jpeg',
   },
   {
     id: 3,
@@ -45,7 +45,7 @@ const slides: Slide[] = [
     subtitle: 'SANCTUARY',
     buttonText: 'EXPLORE ESSENTIALS',
     buttonLink: '/fragrance?department=Essentials',
-    image: 'https://images.unsplash.com/photo-1603006905003-be475563bc59?q=80&w=1600&auto=format&fit=crop',
+    image: '/images/cover-2.jpeg',
   },
 ];
 
@@ -56,7 +56,7 @@ const categoryCards = [
     subtitle: 'PREMIUM SCENTS FOR EVERY MOOD',
     buttonText: 'EXPLORE FRAGRANCES',
     link: '/fragrance?department=Fragrance',
-    image: 'https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?q=80&w=900&auto=format&fit=crop',
+    image: '/images/cover-5.jpeg',
     alt: 'Luxury Fragrance Collection',
   },
   {
@@ -65,7 +65,7 @@ const categoryCards = [
     subtitle: 'CLASSIC. DURABLE. TIMELESS.',
     buttonText: 'EXPLORE LEATHER',
     link: '/fragrance?department=Leather',
-    image: 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?q=80&w=900&auto=format&fit=crop',
+    image: '/images/cover-4.jpeg',
     alt: 'Artisan Leather Goods',
   },
   {
@@ -74,7 +74,7 @@ const categoryCards = [
     subtitle: 'EVERYDAY ITEMS FOR A BETTER YOU',
     buttonText: 'EXPLORE ESSENTIALS',
     link: '/fragrance?department=Essentials',
-    image: 'https://images.unsplash.com/photo-1603006905003-be475563bc59?q=80&w=900&auto=format&fit=crop',
+    image: '/images/cover-3.jpeg',
     alt: 'Luxury Home & Lifestyle Essentials',
   },
 ];
