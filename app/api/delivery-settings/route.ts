@@ -12,21 +12,22 @@ export async function GET() {
       settings = await prisma.deliverySetting.create({
         data: {
           id: 1,
-          standardFee: 250.00,
-          freeDeliveryMin: 5000.00,
+          standardFee: 800.00,
+          freeDeliveryMin: 10000.00,
           isFreeDeliveryActive: true,
-          cityRules: JSON.stringify([
-            { city: 'Karachi', fee: 0, isFree: true, note: 'Local Boutique Delivery' },
-          ]),
+          cityRules: JSON.stringify([]), // Empty default, aap admin se set karenge
         },
       });
     }
 
+    // Bulletproof JSON Parsing (Handles both String and Array from Prisma)
     let parsedCityRules: any[] = [];
     if (settings.cityRules) {
-      try {
-        parsedCityRules = JSON.parse(settings.cityRules);
-      } catch {}
+      if (typeof settings.cityRules === 'string') {
+        try { parsedCityRules = JSON.parse(settings.cityRules); } catch (e) { console.error("Parse error", e); }
+      } else if (Array.isArray(settings.cityRules)) {
+        parsedCityRules = settings.cityRules;
+      }
     }
 
     return NextResponse.json({
@@ -40,4 +41,3 @@ export async function GET() {
     return NextResponse.json({ error: 'Failed to load delivery settings' }, { status: 500 });
   }
 }
-

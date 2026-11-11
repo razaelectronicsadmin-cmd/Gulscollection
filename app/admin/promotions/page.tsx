@@ -517,7 +517,7 @@ export default function PromotionsPage() {
               <button
                 onClick={handleSaveDelivery}
                 disabled={isSavingDelivery}
-                className="flex items-center gap-2 px-5 py-2.5 bg-[#183629] text-white text-sm font-semibold rounded-lg hover:bg-[#11261d] transition-colors shadow-xs disabled:opacity-50 cursor-pointer"
+                className="px-4 py-2 bg-black text-white text-xs font-semibold rounded hover:bg-gray-800 transition-colors"
               >
                 {isSavingDelivery ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
                 Save Shipping Settings

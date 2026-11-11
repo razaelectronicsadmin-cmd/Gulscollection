@@ -253,7 +253,7 @@ export default function AdminSettingsPage() {
               <button
                 type="submit"
                 disabled={isUpdatingEmail}
-                className="w-full mt-2 py-2.5 px-4 rounded-lg bg-[#183629] text-[#F3E9D7] hover:bg-[#11261d] hover:text-[#C9A66B] text-xs font-bold uppercase tracking-wider transition-all disabled:opacity-60 flex items-center justify-center gap-2 cursor-pointer"
+                className="px-4 py-2 bg-black text-white text-xs font-semibold rounded hover:bg-gray-800 transition-colors"
               >
                 {isUpdatingEmail ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Update Email Address'}
               </button>
@@ -362,7 +362,7 @@ export default function AdminSettingsPage() {
               <button
                 type="submit"
                 disabled={isUpdatingPassword}
-                className="w-full mt-2 py-2.5 px-4 rounded-lg bg-[#183629] text-[#F3E9D7] hover:bg-[#11261d] hover:text-[#C9A66B] text-xs font-bold uppercase tracking-wider transition-all disabled:opacity-60 flex items-center justify-center gap-2 cursor-pointer"
+                className="px-4 py-2 bg-black text-white text-xs font-semibold rounded hover:bg-gray-800 transition-colors"
               >
                 {isUpdatingPassword ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Set New Password'}
               </button>

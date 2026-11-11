@@ -16,21 +16,24 @@ export async function GET() {
       settings = await prisma.deliverySetting.create({
         data: {
           id: 1,
-          standardFee: 250.00,
-          freeDeliveryMin: 5000.00,
+          standardFee: 800.00,
+          freeDeliveryMin: 10000.00,
           isFreeDeliveryActive: true,
           cityRules: JSON.stringify([
-            { city: 'Karachi', fee: 0, isFree: true, note: 'Local Boutique Delivery' },
+            { city: 'Lahore', fee: 1600, isFree: false, note: 'Special City Rate' },
           ]),
         },
       });
     }
 
+    // Bulletproof JSON Parsing
     let parsedCityRules: any[] = [];
     if (settings.cityRules) {
-      try {
-        parsedCityRules = JSON.parse(settings.cityRules);
-      } catch {}
+      if (typeof settings.cityRules === 'string') {
+        try { parsedCityRules = JSON.parse(settings.cityRules); } catch (e) { console.error("Parse error", e); }
+      } else if (Array.isArray(settings.cityRules)) {
+        parsedCityRules = settings.cityRules;
+      }
     }
 
     return NextResponse.json({
@@ -54,20 +57,23 @@ export async function PATCH(req: Request) {
     const body = await req.json();
     const { standardFee, freeDeliveryMin, isFreeDeliveryActive, cityRules } = body;
 
+    // Force array to string for database compatibility
+    const rulesToSave = Array.isArray(cityRules) ? JSON.stringify(cityRules) : (cityRules || "[]");
+
     const updated = await prisma.deliverySetting.upsert({
       where: { id: 1 },
       update: {
         ...(standardFee !== undefined && { standardFee: parseFloat(standardFee) || 0 }),
         ...(freeDeliveryMin !== undefined && { freeDeliveryMin: parseFloat(freeDeliveryMin) || 0 }),
         ...(isFreeDeliveryActive !== undefined && { isFreeDeliveryActive: Boolean(isFreeDeliveryActive) }),
-        ...(cityRules !== undefined && { cityRules: typeof cityRules === 'string' ? cityRules : JSON.stringify(cityRules) }),
+        cityRules: rulesToSave, // Fixed saving logic
       },
       create: {
         id: 1,
-        standardFee: parseFloat(standardFee) || 250.00,
-        freeDeliveryMin: parseFloat(freeDeliveryMin) || 5000.00,
+        standardFee: parseFloat(standardFee) || 800.00,
+        freeDeliveryMin: parseFloat(freeDeliveryMin) || 10000.00,
         isFreeDeliveryActive: isFreeDeliveryActive !== undefined ? Boolean(isFreeDeliveryActive) : true,
-        cityRules: typeof cityRules === 'string' ? cityRules : JSON.stringify(cityRules || []),
+        cityRules: rulesToSave, // Fixed saving logic
       },
     });
 
@@ -81,4 +87,3 @@ export async function PATCH(req: Request) {
     return NextResponse.json({ error: 'Failed to update delivery settings' }, { status: 500 });
   }
 }
-
