@@ -1,28 +1,28 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
 
 @theme {
   /* Fonts */
-  --font-serif: var(--font-playfair), serif;
-  --font-sans: var(--font-montserrat), sans-serif;
+  --font-serif: "Playfair Display", serif;
+  --font-sans: "Montserrat", sans-serif;
   
   /* Figma Brand Colors */
   --color-brand-white: #ffffff;
-  --color-brand-offwhite: #F3E9D7; /* Main cream background */
-  --color-brand-beige: #D8C6A5;    /* Darker sand/beige */
-  --color-brand-black: #29251D;    /* Main charcoal/brownish text */
-  --color-brand-green: #183629;    /* Main brand green */
-  --color-brand-green-dark: #0B1B12; /* Darkest green (Hero/Footer) */
-  --color-brand-gold: #C9A66B;     /* Main gold accent */
-  --color-brand-gold-light: #E8D2A5; /* Lighter gold */
-
-  /* Soft Shadows */
-  --shadow-soft-sm: 0 2px 8px -2px rgba(0, 0, 0, 0.04), 0 1px 4px -1px rgba(0, 0, 0, 0.02);
-  --shadow-soft-md: 0 6px 20px -4px rgba(0, 0, 0, 0.06), 0 2px 6px -1px rgba(0, 0, 0, 0.03);
-  --shadow-soft-lg: 0 12px 32px -6px rgba(0, 0, 0, 0.08), 0 4px 12px -2px rgba(0, 0, 0, 0.03);
-  --shadow-soft-xl: 0 20px 48px -8px rgba(0, 0, 0, 0.10), 0 8px 18px -3px rgba(0, 0, 0, 0.04);
+  --color-brand-offwhite: #F3E9D7;
+  --color-brand-beige: #D8C6A5;
+  --color-brand-black: #29251D;
+  --color-brand-green: #183629;
+  --color-brand-green-dark: #0B1B12;
+  --color-brand-gold: #C9A66B;
+  --color-brand-gold-light: #E8D2A5;
 }
 
 @layer base {
+  html {
+    scroll-behavior: smooth;
+    background-color: var(--color-brand-offwhite);
+  }
+
   body {
     @apply font-sans bg-brand-offwhite text-brand-black antialiased overflow-x-hidden selection:bg-brand-gold/20 selection:text-brand-green-dark;
     background-color: var(--color-brand-offwhite);
@@ -31,11 +31,6 @@
   
   h1, h2, h3, h4, h5, h6 {
     @apply font-serif text-brand-green-dark tracking-wide;
-  }
-  
-  html {
-    scroll-behavior: smooth;
-    background-color: var(--color-brand-offwhite);
   }
 }
 
