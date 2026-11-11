@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   Truck, Tag, Sparkles, Plus, Trash2, CheckCircle2,
-  AlertCircle, Loader2, Save, X, Calendar, Percent
+  AlertCircle, Loader2, Save, X, Percent
 } from 'lucide-react';
 
 interface CityRule {
@@ -178,7 +178,7 @@ export default function PromotionsPage() {
     }
   };
 
-  const handleAddCityRule = () => {
+  const handleAddCityRule = async () => {
     if (!newCityName.trim()) {
       notify('Please enter a city name.', 'error');
       return;
@@ -191,22 +191,52 @@ export default function PromotionsPage() {
       note: newCityNote.trim() || undefined,
     };
 
-    setDelivery((prev) => ({
-      ...prev,
-      cityRules: [...prev.cityRules.filter((r) => r.city.toLowerCase() !== rule.city.toLowerCase()), rule],
-    }));
+    // Prepare updated state
+    const updatedCityRules = [...delivery.cityRules.filter((r) => r.city.toLowerCase() !== rule.city.toLowerCase()), rule];
+    const updatedDelivery = { ...delivery, cityRules: updatedCityRules };
 
+    // Update UI instantly
+    setDelivery(updatedDelivery);
+
+    // Auto-save to Database immediately
+    try {
+      const res = await fetch('/api/admin/promotions/delivery', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updatedDelivery),
+      });
+      if (!res.ok) throw new Error('Sync failed');
+      notify(`Rule for ${rule.city} added & saved!`, 'success');
+    } catch (err) {
+      notify('Added locally, but failed to sync to database.', 'error');
+    }
+
+    // Reset Form
     setNewCityName('');
     setNewCityFee('0');
     setNewCityIsFree(true);
     setNewCityNote('');
   };
 
-  const handleRemoveCityRule = (cityToRemove: string) => {
-    setDelivery((prev) => ({
-      ...prev,
-      cityRules: prev.cityRules.filter((r) => r.city.toLowerCase() !== cityToRemove.toLowerCase()),
-    }));
+  const handleRemoveCityRule = async (cityToRemove: string) => {
+    const updatedCityRules = delivery.cityRules.filter((r) => r.city.toLowerCase() !== cityToRemove.toLowerCase());
+    const updatedDelivery = { ...delivery, cityRules: updatedCityRules };
+
+    // Update UI instantly
+    setDelivery(updatedDelivery);
+
+    // Auto-save to Database immediately
+    try {
+      const res = await fetch('/api/admin/promotions/delivery', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updatedDelivery),
+      });
+      if (!res.ok) throw new Error('Sync failed');
+      notify('City rule removed successfully.', 'success');
+    } catch {
+      notify('Removed locally, but failed to sync.', 'error');
+    }
   };
 
   // ─── 2. Coupon Actions ────────────────────────────────────────────────────
@@ -513,13 +543,13 @@ export default function PromotionsPage() {
               </div>
             </div>
 
-            <div className="flex justify-end pt-2 border-t border-gray-100">
+            <div className="flex w-full justify-end pt-2 border-t border-gray-100">
               <button
                 onClick={handleSaveDelivery}
                 disabled={isSavingDelivery}
-                className="px-4 py-2 bg-black text-white text-xs font-semibold rounded hover:bg-gray-800 transition-colors"
+                className="flex px-4 py-2 bg-black text-white text-xs font-semibold rounded hover:bg-gray-800 transition-colors"
               >
-                {isSavingDelivery ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
+                {isSavingDelivery ? <Loader2 size={16} className="animate-spin mr-2" /> : <Save size={16} className="mr-2" />}
                 Save Shipping Settings
               </button>
             </div>
@@ -1022,4 +1052,3 @@ export default function PromotionsPage() {
     </div>
   );
 }
-

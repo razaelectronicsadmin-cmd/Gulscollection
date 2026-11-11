@@ -253,7 +253,7 @@ export default function AdminSettingsPage() {
               <button
                 type="submit"
                 disabled={isUpdatingEmail}
-                className="px-4 py-2 bg-black text-white text-xs font-semibold rounded hover:bg-gray-800 transition-colors"
+                className="flex px-4 py-2 bg-black text-white text-xs font-semibold rounded hover:bg-gray-800 transition-colors"
               >
                 {isUpdatingEmail ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Update Email Address'}
               </button>
@@ -362,7 +362,7 @@ export default function AdminSettingsPage() {
               <button
                 type="submit"
                 disabled={isUpdatingPassword}
-                className="px-4 py-2 bg-black text-white text-xs font-semibold rounded hover:bg-gray-800 transition-colors"
+                className="flex px-4 py-2 bg-black text-white text-xs font-semibold rounded hover:bg-gray-800 transition-colors"
               >
                 {isUpdatingPassword ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Set New Password'}
               </button>
