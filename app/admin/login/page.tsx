@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import Link from "next/link";
 import { Loader2, Eye, EyeOff, ShieldCheck } from "lucide-react";
 import ReCaptcha from "@/components/common/ReCaptcha";
@@ -51,8 +52,15 @@ export default function AdminLoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-[#F7F7F5] font-inter px-4 py-12">
       <div className="max-w-md w-full bg-white rounded-2xl shadow-xl border border-[#C9A66B]/25 p-8 sm:p-10">
         <div className="text-center mb-8">
-          <div className="w-12 h-12 rounded-full bg-[#183629] text-[#C9A66B] flex items-center justify-center mx-auto mb-3 shadow-sm">
-            <ShieldCheck size={26} />
+         <div className="w-16 h-16 overflow-hidden flex items-center justify-center mx-auto mb-4">
+            <Image 
+              src="/icons/icon-192x192.png" 
+              alt="Gul's Collection Logo" 
+              width={74} 
+              height={74}
+              priority
+              className="w-full h-full object-contain p-1"
+            />
           </div>
           <h1 className="font-playfair text-3xl font-bold text-[#183629] tracking-tight">
             Gul&apos;s Collection

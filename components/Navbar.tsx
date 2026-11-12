@@ -435,7 +435,7 @@ function NavbarInner() {
               <div>
                 <div className="flex items-center justify-between pb-6 border-b border-brand-gold/20">
                   <Image
-                    src="/images/brand-logo-gold.png"
+                    src="/images/guls-logo.png"
                     alt="Gul's Collection"
                     width={70}
                     height={43}
