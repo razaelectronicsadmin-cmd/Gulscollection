@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, Suspense } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Search, ShoppingBag, Phone, Mail, Menu, X, ArrowRight, Instagram, Facebook, AtSign, Linkedin, Tv, Youtube  } from 'lucide-react';
 import Link from 'next/link';
@@ -47,7 +47,7 @@ export interface AnnouncementBarData {
   fontSize: 'xs' | 'sm' | 'base';
 }
 
-export default function Navbar() {
+function NavbarInner() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -528,5 +528,14 @@ export default function Navbar() {
         )}
       </AnimatePresence>
     </>
+  );
+}
+
+// File ke aakhir mein paste karein
+export default function Navbar() {
+  return (
+    <Suspense fallback={<div className="h-[91px] w-full bg-[#183629]" />}>
+      <NavbarInner />
+    </Suspense>
   );
 }
