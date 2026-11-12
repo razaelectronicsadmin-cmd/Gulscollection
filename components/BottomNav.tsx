@@ -15,7 +15,7 @@ export default function BottomNav() {
     { name: 'Home', href: '/', icon: Home },
     { name: 'Catalog', href: '/fragrance', icon: LayoutGrid },
     { name: 'Cart', href: '/cart', icon: ShoppingBag, badge: cartCount },
-    { name: 'Account', href: '/admin', icon: User },
+    { name: 'Account', href: '/admin/login', icon: User },
   ];
 
   return (
