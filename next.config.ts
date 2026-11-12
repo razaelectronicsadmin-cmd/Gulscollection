@@ -1,8 +1,21 @@
-import type {NextConfig} from 'next';
+import type { NextConfig } from 'next';
+import withPWAInit from "@ducanh2912/next-pwa";
 
+// 1. PWA ki settings (swcMinify yahan se hata diya gaya hai)
+const withPWA = withPWAInit({
+  dest: "public",
+  cacheOnFrontEndNav: false,
+  aggressiveFrontEndNavCaching: false,
+  reloadOnOnline: true,
+  disable: process.env.NODE_ENV === "development",
+  workboxOptions: {
+    disableDevLogs: true,
+  }
+});
+
+// 2. Aapki mojooda Next.js settings
 const nextConfig: NextConfig = {
   reactStrictMode: true,
-  // optimizeFonts yahan se hata diya gaya hai
   eslint: {
     ignoreDuringBuilds: true,
   },
@@ -43,4 +56,5 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+// 3. Exporting configuration
+export default withPWA(nextConfig);

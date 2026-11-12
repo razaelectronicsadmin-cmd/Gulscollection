@@ -8,23 +8,23 @@ import Image from 'next/image';
 export default function PwaBanner() {
   const [isShowing, setIsShowing] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
-  const [isIOS, setIsIOS] = useState(false);
+  
+  // Initialize state cleanly without calling setState inside useEffect
+  const [isIOS] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    const userAgent = window.navigator.userAgent.toLowerCase();
+    return /iphone|ipad|ipod/.test(userAgent);
+  });
 
   useEffect(() => {
-    // Check agar app pehle se installed hai (standalone mode)
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone;
     if (isStandalone) return;
 
-    // Detect iOS
-    const userAgent = window.navigator.userAgent.toLowerCase();
-    if (/iphone|ipad|ipod/.test(userAgent)) {
-      setIsIOS(true);
-      // iOS par delay ke baad show karein
+    if (isIOS) {
       const timer = setTimeout(() => setIsShowing(true), 3000);
       return () => clearTimeout(timer);
     }
 
-    // Android/Chrome Install Prompt
     const handleBeforeInstallPrompt = (e: any) => {
       e.preventDefault();
       setDeferredPrompt(e);
@@ -33,7 +33,7 @@ export default function PwaBanner() {
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
     return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-  }, []);
+  }, [isIOS]);
 
   const handleInstallClick = async () => {
     if (deferredPrompt) {
@@ -65,7 +65,7 @@ export default function PwaBanner() {
           <div className="flex items-center gap-3">
             <Image src="/icons/icon-192x192.png" alt="App Icon" width={44} height={44} className="rounded-lg shadow-md" />
             <div className="flex flex-col">
-              <span className="text-sm font-serif font-bold text-[#F3E9D7]">Gul's Collection</span>
+              <span className="text-sm font-serif font-bold text-[#F3E9D7]">Gul&apos;s Collection</span>
               <span className="text-[10px] text-[#C9A66B] uppercase tracking-wider">Premium Experience</span>
             </div>
           </div>
@@ -73,7 +73,7 @@ export default function PwaBanner() {
           {isIOS ? (
             <div className="text-[9px] text-[#F3E9D7] flex flex-col items-center text-center bg-[#C9A66B]/10 px-2 py-1 rounded-md">
               <span className="flex items-center gap-1"><Share size={10} /> Tap Share</span>
-              <span>then 'Add to Home Screen'</span>
+              <span>then &apos;Add to Home Screen&apos;</span>
             </div>
           ) : (
             <button 

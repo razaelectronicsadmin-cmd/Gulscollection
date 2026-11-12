@@ -9,7 +9,6 @@ import PwaBanner from '@/components/PwaBanner';
 export const metadata: Metadata = {
   title: "Gul's Collection | Premium Fragrances",
   description: "Discover the art of perfumery with Gul's Collection.",
-  manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
