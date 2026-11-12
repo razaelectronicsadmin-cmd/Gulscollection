@@ -1,14 +1,23 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import Image from 'next/image';
-import Link from 'next/link';
-import { motion, AnimatePresence } from 'motion/react';
-import { ShoppingBag, Minus, Plus, ChevronDown, ArrowLeft, ArrowRight, CheckCircle2, Truck } from 'lucide-react';
-import { useStore } from '@/context/StoreContext';
-import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/Button';
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import Image from "next/image";
+import Link from "next/link";
+import { motion, AnimatePresence } from "motion/react";
+import {
+  ShoppingBag,
+  Minus,
+  Plus,
+  ChevronDown,
+  ArrowLeft,
+  ArrowRight,
+  CheckCircle2,
+  Truck,
+} from "lucide-react";
+import { useStore } from "@/context/StoreContext";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/Button";
 
 export interface DeliveryInfo {
   standardDeliveryFee: number;
@@ -19,7 +28,7 @@ export interface DeliveryInfo {
 
 export interface PromoInfo {
   title?: string;
-  discountType: 'PERCENTAGE' | 'FIXED' | 'FREE_SHIPPING';
+  discountType: "PERCENTAGE" | "FIXED" | "FREE_SHIPPING";
   discountValue: number;
   discountedPrice: number;
   badge: string;
@@ -47,27 +56,38 @@ export interface FormattedProduct {
   deliveryInfo?: DeliveryInfo | null;
 }
 
-export default function ProductDetailView({ product }: { product: FormattedProduct | null }) {
+export default function ProductDetailView({
+  product,
+}: {
+  product: FormattedProduct | null;
+}) {
   const router = useRouter();
   const { addToCart } = useStore();
 
-  const galleryImages = (product?.images && product.images.length > 0)
-    ? product.images
-    : product?.image
-    ? [product.image]
-    : [];
+  const galleryImages =
+    product?.images && product.images.length > 0
+      ? product.images
+      : product?.image
+        ? [product.image]
+        : [];
 
-  const [activeImage, setActiveImage] = useState(galleryImages[0] || product?.image || '');
+  const [activeImage, setActiveImage] = useState(
+    galleryImages[0] || product?.image || "",
+  );
   const [quantity, setQuantity] = useState(1);
-  const [activeAccordion, setActiveAccordion] = useState<string | null>('notes');
+  const [activeAccordion, setActiveAccordion] = useState<string | null>(
+    "notes",
+  );
   const [isAddedToCart, setIsAddedToCart] = useState(false);
 
   if (!product) return null;
 
   const currentDisplayImage = activeImage || product.image;
-  const effectivePrice = product.promotion?.discountedPrice && product.promotion.discountedPrice < product.price
-    ? product.promotion.discountedPrice
-    : product.price;
+  const effectivePrice =
+    product.promotion?.discountedPrice &&
+    product.promotion.discountedPrice < product.price
+      ? product.promotion.discountedPrice
+      : product.price;
 
   const handleAddToCart = () => {
     addToCart(product.id.toString(), quantity, {
@@ -79,7 +99,7 @@ export default function ProductDetailView({ product }: { product: FormattedProdu
   };
 
   const handleViewCart = () => {
-    router.push('/cart');
+    router.push("/cart");
   };
 
   const toggleAccordion = (section: string) => {
@@ -99,13 +119,15 @@ export default function ProductDetailView({ product }: { product: FormattedProdu
         </button>
 
         <nav className="hidden md:flex items-center space-x-3 text-[12px] uppercase tracking-[0.2em] font-medium text-[#8C7A5B]">
-          <Link href="/" className="hover:text-[#183629] transition-colors">Home</Link>
+          <Link href="/" className="hover:text-[#183629] transition-colors">
+            Home
+          </Link>
           <span>/</span>
           <Link
-            href={`/fragrance?department=${encodeURIComponent(product.department || 'Fragrance')}`}
+            href={`/fragrance?department=${encodeURIComponent(product.department || "Fragrance")}`}
             className="hover:text-[#183629] transition-colors"
           >
-            {product.department || 'Fragrance'}
+            {product.department || "Fragrance"}
           </Link>
           <span>/</span>
           <span className="text-[#C9A66B] font-semibold">{product.name}</span>
@@ -129,7 +151,9 @@ export default function ProductDetailView({ product }: { product: FormattedProdu
             )}
             {product.isSpecialEdition && (
               <div className="absolute top-6 right-6 z-20 bg-[#183629] text-[#F3E9D7] text-[12px] uppercase tracking-[0.2em] font-bold px-4 py-2 rounded-sm shadow-md border border-[#C9A66B]/30">
-                {product.specialEditionType ? `${product.specialEditionType} Special Edition` : 'Special Edition'}
+                {product.specialEditionType
+                  ? `${product.specialEditionType} Special Edition`
+                  : "Special Edition"}
               </div>
             )}
             <Image
@@ -139,7 +163,10 @@ export default function ProductDetailView({ product }: { product: FormattedProdu
               priority
               className="object-contain object-center scale-95 transition-all duration-300"
               sizes="(max-width: 1024px) 100vw, 50vw"
-              unoptimized={typeof currentDisplayImage === 'string' && currentDisplayImage.startsWith('/uploads/')}
+              unoptimized={
+                typeof currentDisplayImage === "string" &&
+                currentDisplayImage.startsWith("/uploads/")
+              }
             />
           </div>
 
@@ -155,7 +182,7 @@ export default function ProductDetailView({ product }: { product: FormattedProdu
                     "relative w-20 h-20 rounded-md overflow-hidden bg-transparent shrink-0 border transition-all cursor-pointer",
                     currentDisplayImage === img
                       ? "border-[#183629] ring-2 ring-[#183629]/30 shadow-xs"
-                      : "border-gray-200 opacity-60 hover:opacity-100 hover:border-gray-300"
+                      : "border-gray-200 opacity-60 hover:opacity-100 hover:border-gray-300",
                   )}
                   aria-label={`View photo ${idx + 1}`}
                 >
@@ -165,7 +192,9 @@ export default function ProductDetailView({ product }: { product: FormattedProdu
                     fill
                     className="object-cover"
                     sizes="80px"
-                    unoptimized={typeof img === 'string' && img.startsWith('/uploads/')}
+                    unoptimized={
+                      typeof img === "string" && img.startsWith("/uploads/")
+                    }
                   />
                 </button>
               ))}
@@ -228,7 +257,9 @@ export default function ProductDetailView({ product }: { product: FormattedProdu
               >
                 <Minus size={16} />
               </button>
-              <span className="text-[14px] font-medium text-[#183629]">{quantity}</span>
+              <span className="text-[14px] font-medium text-[#183629]">
+                {quantity}
+              </span>
               <button
                 type="button"
                 onClick={() => setQuantity(Math.min(99, quantity + 1))} // Allows up to 99 items per order
@@ -240,7 +271,9 @@ export default function ProductDetailView({ product }: { product: FormattedProdu
               </button>
             </div>
 
-            <div className="flex-1 relative w-full h-[52px]"> {/* Fixed height container for smooth sliding */}
+            <div className="flex-1 relative w-full h-[52px]">
+              {" "}
+              {/* Fixed height container for smooth sliding */}
               <AnimatePresence initial={false} mode="wait">
                 {!isAddedToCart ? (
                   <motion.div
@@ -253,10 +286,13 @@ export default function ProductDetailView({ product }: { product: FormattedProdu
                   >
                     <Button
                       onClick={handleAddToCart}
-                      className="w-full h-full flex items-center justify-center space-x-3 bg-[#183629] text-[#F3E9D7] hover:bg-[#11261d] hover:text-[#C9A66B] transition-colors tracking-[0.15em] text-[12px] rounded-sm shadow-md"
+                      className="w-full h-full flex items-center justify-center gap-1.5 sm:gap-3 px-2 bg-[#183629] text-[#F3E9D7] hover:bg-[#11261d] hover:text-[#C9A66B] transition-colors tracking-[0.1em] sm:tracking-[0.15em] text-[10px] sm:text-[11px] md:text-[12px] rounded-sm shadow-md"
                     >
-                      <ShoppingBag size={16} />
-                      <span>ADD TO CART — PKR {(effectivePrice * quantity).toLocaleString()}</span>
+                      <ShoppingBag size={16} className="shrink-0" />
+                      <span className="whitespace-nowrap truncate">
+                        ADD TO CART — PKR{" "}
+                        {(effectivePrice * quantity).toLocaleString()}
+                      </span>
                     </Button>
                   </motion.div>
                 ) : (
@@ -290,7 +326,9 @@ export default function ProductDetailView({ product }: { product: FormattedProdu
               </div>
               <div className="text-xs">
                 <div className="font-bold text-[#183629] uppercase tracking-wider text-[11px]">
-                  {product.deliveryInfo?.isFreeDeliveryActive && effectivePrice >= (product.deliveryInfo?.freeDeliveryMin ?? 5000) ? (
+                  {product.deliveryInfo?.isFreeDeliveryActive &&
+                  effectivePrice >=
+                    (product.deliveryInfo?.freeDeliveryMin ?? 5000) ? (
                     <span className="text-emerald-800 flex items-center gap-1.5">
                       <span className="inline-block w-2 h-2 rounded-full bg-emerald-600" />
                       FREE Express Delivery Eligible
@@ -300,42 +338,41 @@ export default function ProductDetailView({ product }: { product: FormattedProdu
                   )}
                 </div>
                 <p className="text-[#8C7A5B] mt-0.5 leading-relaxed">
-                  {product.deliveryInfo?.isFreeDeliveryActive ? (
-                    effectivePrice >= product.deliveryInfo.freeDeliveryMin ? (
-                      `This product qualifies for FREE delivery (free above PKR ${product.deliveryInfo.freeDeliveryMin.toLocaleString()}).`
-                    ) : (
-                      `Standard delivery: PKR ${product.deliveryInfo.standardDeliveryFee}. Add PKR ${(product.deliveryInfo.freeDeliveryMin - effectivePrice).toLocaleString()} more to your bag for FREE delivery.`
-                    )
-                  ) : (
-                    `Standard delivery charges: PKR ${product.deliveryInfo?.standardDeliveryFee ?? 200}.`
-                  )}
-                  {product.deliveryInfo?.freeDeliveryCities && product.deliveryInfo.freeDeliveryCities.length > 0 && (
-                    <span className="block mt-0.5 text-[#183629] font-medium">
-                      Complimentary local shipping in {product.deliveryInfo.freeDeliveryCities.join(', ')}.
-                    </span>
-                  )}
+                  {product.deliveryInfo?.isFreeDeliveryActive
+                    ? effectivePrice >= product.deliveryInfo.freeDeliveryMin
+                      ? `This product qualifies for FREE delivery (free above PKR ${product.deliveryInfo.freeDeliveryMin.toLocaleString()}).`
+                      : `Standard delivery: PKR ${product.deliveryInfo.standardDeliveryFee}. Add PKR ${(product.deliveryInfo.freeDeliveryMin - effectivePrice).toLocaleString()} more to your bag for FREE delivery.`
+                    : `Standard delivery charges: PKR ${product.deliveryInfo?.standardDeliveryFee ?? 200}.`}
+                  {product.deliveryInfo?.freeDeliveryCities &&
+                    product.deliveryInfo.freeDeliveryCities.length > 0 && (
+                      <span className="block mt-0.5 text-[#183629] font-medium">
+                        Complimentary local shipping in{" "}
+                        {product.deliveryInfo.freeDeliveryCities.join(", ")}.
+                      </span>
+                    )}
                 </p>
               </div>
             </div>
 
             <div className="border-t border-[#C9A66B]/15 pt-2.5 flex flex-wrap items-center justify-between text-[11px] text-[#8C7A5B] gap-2">
               <span className="flex items-center gap-1">
-                <CheckCircle2 size={13} className="text-[#C9A66B]" /> 100% Authentic Handcrafted
+                <CheckCircle2 size={13} className="text-[#C9A66B]" /> 100%
+                Authentic Handcrafted
               </span>
               <span className="flex items-center gap-1">
-                <CheckCircle2 size={13} className="text-[#C9A66B]" /> Nationwide Dispatch within 24–48h
+                <CheckCircle2 size={13} className="text-[#C9A66B]" /> Nationwide
+                Dispatch within 24–48h
               </span>
             </div>
           </div>
 
           {/* Accordions */}
           <div className="border-t border-[#C9A66B]/30">
-            
             {/* Fragrance Notes */}
             {(product.topNote || product.heartNote || product.baseNote) && (
               <div className="border-b border-[#C9A66B]/30">
                 <button
-                  onClick={() => toggleAccordion('notes')}
+                  onClick={() => toggleAccordion("notes")}
                   className="w-full py-5 flex items-center justify-between text-left focus:outline-none group cursor-pointer"
                 >
                   <span className="text-[11px] uppercase tracking-[0.2em] font-semibold text-[#183629] group-hover:text-[#C9A66B] transition-colors">
@@ -344,36 +381,50 @@ export default function ProductDetailView({ product }: { product: FormattedProdu
                   <ChevronDown
                     size={16}
                     className={cn(
-                      'text-[#8C7A5B] transition-transform duration-300',
-                      activeAccordion === 'notes' ? 'rotate-180 text-[#C9A66B]' : ''
+                      "text-[#8C7A5B] transition-transform duration-300",
+                      activeAccordion === "notes"
+                        ? "rotate-180 text-[#C9A66B]"
+                        : "",
                     )}
                   />
                 </button>
                 <AnimatePresence>
-                  {activeAccordion === 'notes' && (
+                  {activeAccordion === "notes" && (
                     <motion.div
                       initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: 'auto', opacity: 1 }}
+                      animate={{ height: "auto", opacity: 1 }}
                       exit={{ height: 0, opacity: 0 }}
                       className="overflow-hidden"
                     >
                       <div className="pb-6 pt-2 space-y-5">
                         {product.topNote && (
                           <div>
-                            <p className="text-[12px] uppercase tracking-[0.2em] text-[#C9A66B] font-bold mb-1.5">Top Notes</p>
-                            <p className="text-[13px] font-sans text-[#29251D]">{product.topNote}</p>
+                            <p className="text-[12px] uppercase tracking-[0.2em] text-[#C9A66B] font-bold mb-1.5">
+                              Top Notes
+                            </p>
+                            <p className="text-[13px] font-sans text-[#29251D]">
+                              {product.topNote}
+                            </p>
                           </div>
                         )}
                         {product.heartNote && (
                           <div>
-                            <p className="text-[12px] uppercase tracking-[0.2em] text-[#C9A66B] font-bold mb-1.5">Heart Notes</p>
-                            <p className="text-[13px] font-sans text-[#29251D]">{product.heartNote}</p>
+                            <p className="text-[12px] uppercase tracking-[0.2em] text-[#C9A66B] font-bold mb-1.5">
+                              Heart Notes
+                            </p>
+                            <p className="text-[13px] font-sans text-[#29251D]">
+                              {product.heartNote}
+                            </p>
                           </div>
                         )}
                         {product.baseNote && (
                           <div>
-                            <p className="text-[12px] uppercase tracking-[0.2em] text-[#C9A66B] font-bold mb-1.5">Base Notes</p>
-                            <p className="text-[13px] font-sans text-[#29251D]">{product.baseNote}</p>
+                            <p className="text-[12px] uppercase tracking-[0.2em] text-[#C9A66B] font-bold mb-1.5">
+                              Base Notes
+                            </p>
+                            <p className="text-[13px] font-sans text-[#29251D]">
+                              {product.baseNote}
+                            </p>
                           </div>
                         )}
                       </div>
@@ -387,7 +438,7 @@ export default function ProductDetailView({ product }: { product: FormattedProdu
             {product.ingredients && (
               <div className="border-b border-[#C9A66B]/30">
                 <button
-                  onClick={() => toggleAccordion('ingredients')}
+                  onClick={() => toggleAccordion("ingredients")}
                   className="w-full py-5 flex items-center justify-between text-left focus:outline-none group cursor-pointer"
                 >
                   <span className="text-[11px] uppercase tracking-[0.2em] font-semibold text-[#183629] group-hover:text-[#C9A66B] transition-colors">
@@ -396,16 +447,18 @@ export default function ProductDetailView({ product }: { product: FormattedProdu
                   <ChevronDown
                     size={16}
                     className={cn(
-                      'text-[#8C7A5B] transition-transform duration-300',
-                      activeAccordion === 'ingredients' ? 'rotate-180 text-[#C9A66B]' : ''
+                      "text-[#8C7A5B] transition-transform duration-300",
+                      activeAccordion === "ingredients"
+                        ? "rotate-180 text-[#C9A66B]"
+                        : "",
                     )}
                   />
                 </button>
                 <AnimatePresence>
-                  {activeAccordion === 'ingredients' && (
+                  {activeAccordion === "ingredients" && (
                     <motion.div
                       initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: 'auto', opacity: 1 }}
+                      animate={{ height: "auto", opacity: 1 }}
                       exit={{ height: 0, opacity: 0 }}
                       className="overflow-hidden"
                     >
@@ -423,7 +476,7 @@ export default function ProductDetailView({ product }: { product: FormattedProdu
             {/* Shipping */}
             <div className="border-b border-[#C9A66B]/30">
               <button
-                onClick={() => toggleAccordion('delivery')}
+                onClick={() => toggleAccordion("delivery")}
                 className="w-full py-5 flex items-center justify-between text-left focus:outline-none group cursor-pointer"
               >
                 <span className="text-[11px] uppercase tracking-[0.2em] font-semibold text-[#183629] group-hover:text-[#C9A66B] transition-colors">
@@ -432,37 +485,49 @@ export default function ProductDetailView({ product }: { product: FormattedProdu
                 <ChevronDown
                   size={16}
                   className={cn(
-                    'text-[#8C7A5B] transition-transform duration-300',
-                    activeAccordion === 'delivery' ? 'rotate-180 text-[#C9A66B]' : ''
+                    "text-[#8C7A5B] transition-transform duration-300",
+                    activeAccordion === "delivery"
+                      ? "rotate-180 text-[#C9A66B]"
+                      : "",
                   )}
                 />
               </button>
               <AnimatePresence>
-                {activeAccordion === 'delivery' && (
+                {activeAccordion === "delivery" && (
                   <motion.div
                     initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: 'auto', opacity: 1 }}
+                    animate={{ height: "auto", opacity: 1 }}
                     exit={{ height: 0, opacity: 0 }}
                     className="overflow-hidden"
                   >
                     <div className="pb-6 pt-2 space-y-2 text-[13px] font-sans text-[#29251D]/80 leading-relaxed">
                       <p>
-                        <strong>Standard Shipping:</strong> Flat rate of PKR {product.deliveryInfo?.standardDeliveryFee ?? 200} across all cities of Pakistan.
+                        <strong>Standard Shipping:</strong> Flat rate of PKR{" "}
+                        {product.deliveryInfo?.standardDeliveryFee ?? 200}{" "}
+                        across all cities of Pakistan.
                       </p>
                       {product.deliveryInfo?.isFreeDeliveryActive && (
                         <p>
-                          <strong>Free Shipping:</strong> Automatically applied at checkout on all orders exceeding PKR {product.deliveryInfo.freeDeliveryMin.toLocaleString()}{product.deliveryInfo.freeDeliveryCities && product.deliveryInfo.freeDeliveryCities.length > 0 ? ` or orders delivering within ${product.deliveryInfo.freeDeliveryCities.join(', ')}.` : '.'}
+                          <strong>Free Shipping:</strong> Automatically applied
+                          at checkout on all orders exceeding PKR{" "}
+                          {product.deliveryInfo.freeDeliveryMin.toLocaleString()}
+                          {product.deliveryInfo.freeDeliveryCities &&
+                          product.deliveryInfo.freeDeliveryCities.length > 0
+                            ? ` or orders delivering within ${product.deliveryInfo.freeDeliveryCities.join(", ")}.`
+                            : "."}
                         </p>
                       )}
                       <p className="text-xs text-[#8C7A5B] pt-1">
-                        Due to the artisanal luxury nature of our collections, unsealed fragrances cannot be returned, but damaged or defective shipments are promptly exchanged within 7 days.
+                        Due to the artisanal luxury nature of our collections,
+                        unsealed fragrances cannot be returned, but damaged or
+                        defective shipments are promptly exchanged within 7
+                        days.
                       </p>
                     </div>
                   </motion.div>
                 )}
               </AnimatePresence>
             </div>
-
           </div>
         </motion.div>
       </div>

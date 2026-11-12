@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { StoreProvider } from '@/context/StoreContext'; 
 import NextTopLoader from 'nextjs-toploader';
+import WhatsAppWidget from '@/components/ui/WhatsAppWidget';
 
 export const metadata: Metadata = {
   title: "Gul's Premium Fragrances | Wear Your Era",
@@ -33,6 +34,7 @@ export default function RootLayout({
           {/* Main content wrapper */}
           <div className="flex-grow w-full flex flex-col">
             {children}
+            <WhatsAppWidget />
           </div>
         </StoreProvider>
       </body>
