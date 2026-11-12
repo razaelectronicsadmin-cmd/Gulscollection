@@ -1,13 +1,18 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import Image from 'next/image';
-import Link from 'next/link';
-import { motion, AnimatePresence } from 'motion/react';
-import { 
-  ChevronLeft, ChevronRight, ArrowRight, 
-  Truck, ShieldCheck, Gift, Headphones 
-} from 'lucide-react';
+import React, { useState } from "react";
+import Image from "next/image";
+import Link from "next/link";
+import { motion, AnimatePresence } from "motion/react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  ArrowRight,
+  Truck,
+  ShieldCheck,
+  Gift,
+  Headphones,
+} from "lucide-react";
 
 interface Slide {
   id: number;
@@ -17,85 +22,99 @@ interface Slide {
   buttonText: string;
   buttonLink: string;
   image: string;
+  disabled?: boolean;
 }
 
 const slides: Slide[] = [
   {
     id: 1,
-    tagline: 'SCENTS • STYLE • ESSENTIALS',
+    tagline: "SCENTS • STYLE • ESSENTIALS",
     title: "Gul's",
-    subtitle: 'COLLECTION',
-    buttonText: 'SHOP NOW',
-    buttonLink: '/fragrance',
-    image: '/images/cover.jpeg',
+    subtitle: "COLLECTION",
+    buttonText: "SHOP NOW",
+    buttonLink: "/fragrance",
+    image: "/images/cover.jpeg",
   },
   {
     id: 2,
-    tagline: 'HANDCRAFTED FULL-GRAIN LUXURY',
-    title: 'Leather',
-    subtitle: 'ATELIER',
-    buttonText: 'EXPLORE LEATHER',
-    buttonLink: '/fragrance?department=Leather',
-    image: '/images/cover-1.jpeg',
+    tagline: "HANDCRAFTED FULL-GRAIN LUXURY",
+    title: "Leather",
+    subtitle: "ATELIER",
+    buttonText: "COMING SOON",
+    buttonLink: "#",
+    image: "/images/cover-1.jpeg",
+    disabled: true, // Disable the button for Leather category
   },
   {
     id: 3,
-    tagline: 'SOY CANDLES & HOME DIFFUSERS',
-    title: 'The Essentials',
-    subtitle: 'SANCTUARY',
-    buttonText: 'EXPLORE ESSENTIALS',
-    buttonLink: '/fragrance?department=Essentials',
-    image: '/images/cover-2.jpeg',
+    tagline: "SOY CANDLES & HOME DIFFUSERS",
+    title: "The Essentials",
+    subtitle: "SANCTUARY",
+    buttonText: "COMING SOON",
+    buttonLink: "#",
+    image: "/images/cover-2.jpeg",
+    disabled: true, // Disable the button for Essentials category
   },
 ];
 
 const categoryCards = [
   {
-    id: 'fragrance',
-    title: 'Fragrance',
-    subtitle: 'PREMIUM SCENTS FOR EVERY MOOD',
-    buttonText: 'EXPLORE FRAGRANCES',
-    link: '/fragrance?department=Fragrance',
-    image: '/images/cover-5.jpeg',
-    alt: 'Luxury Fragrance Collection',
+    id: "fragrance",
+    title: "Fragrance",
+    subtitle: "PREMIUM SCENTS FOR EVERY MOOD",
+    buttonText: "EXPLORE FRAGRANCES",
+    link: "/fragrance?department=Fragrance",
+    image: "/images/cover-5.jpeg",
+    alt: "Luxury Fragrance Collection",
   },
   {
-    id: 'leather',
-    title: 'Leather',
-    subtitle: 'CLASSIC. DURABLE. TIMELESS.',
-    buttonText: 'EXPLORE LEATHER',
-    link: '/fragrance?department=Leather',
-    image: '/images/cover-4.jpeg',
-    alt: 'Artisan Leather Goods',
+    id: "leather",
+    title: "Leather",
+    subtitle: "CLASSIC. DURABLE. TIMELESS.",
+    buttonText: "COMING SOON",
+    link: "#",
+    image: "/images/cover-4.jpeg",
+    alt: "Artisan Leather Goods",
+    disabled: true,
   },
   {
-    id: 'essentials',
-    title: 'Essentials',
-    subtitle: 'EVERYDAY ITEMS FOR A BETTER YOU',
-    buttonText: 'EXPLORE ESSENTIALS',
-    link: '/fragrance?department=Essentials',
-    image: '/images/cover-3.jpeg',
-    alt: 'Luxury Home & Lifestyle Essentials',
+    id: "essentials",
+    title: "Essentials",
+    subtitle: "EVERYDAY ITEMS FOR A BETTER YOU",
+    buttonText: "COMING SOON",
+    link: "#",
+    image: "/images/cover-3.jpeg",
+    alt: "Luxury Home & Lifestyle Essentials",
+    disabled: true,
   },
 ];
 
 const trustBadges = [
-  { icon: Truck, title: 'Fast Delivery', subtitle: 'All Over Pakistan' },
-  { icon: ShieldCheck, title: 'Secure Payment', subtitle: '100% Safe & Secure' },
-  { icon: Gift, title: 'Premium Quality', subtitle: 'Original Products' },
-  { icon: Headphones, title: 'Customer Support', subtitle: "We're Here to Help" },
+  { icon: Truck, title: "Fast Delivery", subtitle: "All Over Pakistan" },
+  {
+    icon: ShieldCheck,
+    title: "Secure Payment",
+    subtitle: "100% Safe & Secure",
+  },
+  { icon: Gift, title: "Premium Quality", subtitle: "Original Products" },
+  {
+    icon: Headphones,
+    title: "Customer Support",
+    subtitle: "We're Here to Help",
+  },
 ];
 
 export default function Hero() {
   const [currentSlide, setCurrentSlide] = useState(0);
 
-  const prevSlide = () => setCurrentSlide((prev) => (prev === 0 ? slides.length - 1 : prev - 1));
-  const nextSlide = () => setCurrentSlide((prev) => (prev === slides.length - 1 ? 0 : prev + 1));
+  const prevSlide = () =>
+    setCurrentSlide((prev) => (prev === 0 ? slides.length - 1 : prev - 1));
+  const nextSlide = () =>
+    setCurrentSlide((prev) => (prev === slides.length - 1 ? 0 : prev + 1));
   const activeSlide = slides[currentSlide];
 
   return (
     <section className="w-full bg-[#fbfbfa] text-brand-black flex flex-col">
-      
       {/* ─── VIEWPORT 1: FULL SCREEN HERO SLIDER (With Navbar) ────────────── */}
       {/* Deducts exact Navbar + Announcement height (44px+91px=135px on mobile, 48px+91px=139px on desktop) */}
       <div className="relative w-full h-[calc(100vh-135px)] md:h-[calc(100vh-139px)] min-h-[480px] bg-[#0c0f0e] overflow-hidden flex items-center">
@@ -105,7 +124,7 @@ export default function Hero() {
             initial={{ opacity: 0, scale: 1.05 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.9, ease: 'easeOut' }}
+            transition={{ duration: 0.9, ease: "easeOut" }}
             className="absolute inset-0 z-0"
           >
             <Image
@@ -144,7 +163,7 @@ export default function Hero() {
             key={activeSlide.id}
             initial={{ opacity: 0, x: -30 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8, ease: 'easeOut' }}
+            transition={{ duration: 0.8, ease: "easeOut" }}
             className="max-w-xl text-left"
           >
             <div className="mb-4 md:mb-6">
@@ -163,10 +182,25 @@ export default function Hero() {
             <div>
               <Link
                 href={activeSlide.buttonLink}
-                className="inline-flex items-center gap-3 px-8 py-4 border border-[#C9A66B] text-[#F3E9D7] hover:bg-[#C9A66B] hover:text-[#0c0f0e] transition-all duration-300 text-xs sm:text-sm tracking-[0.2em] uppercase font-semibold rounded-xs shadow-lg group cursor-pointer"
+                className={`inline-flex items-center gap-3 px-8 py-4 border text-xs sm:text-sm tracking-[0.2em] uppercase font-semibold rounded-xs shadow-lg transition-all duration-300 group
+    ${
+      activeSlide.disabled
+        ? "border-[#C9A66B]/50 text-[#F3E9D7]/50 pointer-events-none cursor-not-allowed"
+        : "border-[#C9A66B] text-[#F3E9D7] hover:bg-[#C9A66B] hover:text-[#0c0f0e] cursor-pointer"
+    }
+  `}
+                aria-disabled={activeSlide.disabled}
+                tabIndex={activeSlide.disabled ? -1 : 0}
               >
                 <span>{activeSlide.buttonText}</span>
-                <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+
+                {/* ArrowRight sirf active slides par show hoga */}
+                {!activeSlide.disabled && (
+                  <ArrowRight
+                    size={16}
+                    className="group-hover:translate-x-1 transition-transform"
+                  />
+                )}
               </Link>
             </div>
           </motion.div>
@@ -180,9 +214,9 @@ export default function Hero() {
               onClick={() => setCurrentSlide(index)}
               aria-label={`Go to slide ${index + 1}`}
               className={`h-2 rounded-full transition-all duration-300 cursor-pointer ${
-                currentSlide === index 
-                  ? 'w-8 bg-[#C9A66B]' 
-                  : 'w-2 bg-[#F3E9D7]/40 hover:bg-[#F3E9D7]/70'
+                currentSlide === index
+                  ? "w-8 bg-[#C9A66B]"
+                  : "w-2 bg-[#F3E9D7]/40 hover:bg-[#F3E9D7]/70"
               }`}
             />
           ))}
@@ -191,7 +225,6 @@ export default function Hero() {
 
       {/* ─── VIEWPORT 2: THREE DEPARTMENT CARDS & TRUST BADGES ────────────── */}
       <div className="w-full min-h-screen flex flex-col justify-between bg-[#fbfbfa]">
-        
         {/* Three Department Showcase Cards */}
         <div className="w-full max-w-[1400px] mx-auto px-5 sm:px-8 md:px-14 py-12 md:py-16 my-auto">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
@@ -227,10 +260,25 @@ export default function Hero() {
 
                   <Link
                     href={card.link}
-                    className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-6 py-3.5 bg-[#111] hover:bg-[#183629] text-white text-[11px] tracking-[0.18em] uppercase font-semibold transition-all duration-300 rounded-xs group/btn cursor-pointer shadow-sm"
+                    className={`w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-6 py-3.5 text-white text-[11px] tracking-[0.18em] uppercase font-semibold transition-all duration-300 rounded-xs shadow-sm group/btn 
+    ${
+      card.disabled
+        ? "bg-[#333] opacity-60 pointer-events-none cursor-not-allowed"
+        : "bg-[#111] hover:bg-[#183629] cursor-pointer"
+    }
+  `}
+                    aria-disabled={card.disabled}
+                    tabIndex={card.disabled ? -1 : 0}
                   >
                     <span>{card.buttonText}</span>
-                    <ArrowRight size={14} className="group-hover/btn:translate-x-1 transition-transform" />
+
+                    {/* Arrow icon sirf active cards (Fragrance) par show hoga */}
+                    {!card.disabled && (
+                      <ArrowRight
+                        size={14}
+                        className="group-hover/btn:translate-x-1 transition-transform"
+                      />
+                    )}
                   </Link>
                 </div>
               </motion.div>
@@ -244,14 +292,20 @@ export default function Hero() {
             {trustBadges.map((badge, idx) => {
               const Icon = badge.icon;
               return (
-                <div 
-                  key={badge.title} 
+                <div
+                  key={badge.title}
                   className={`flex items-center gap-4 ${
-                    idx < trustBadges.length - 1 ? 'lg:border-r lg:border-brand-black/10' : ''
+                    idx < trustBadges.length - 1
+                      ? "lg:border-r lg:border-brand-black/10"
+                      : ""
                   } pr-2`}
                 >
                   <div className="w-11 h-11 md:w-12 md:h-12 rounded-full bg-[#F4F1EA] flex items-center justify-center shrink-0 border border-[#C9A66B]/25">
-                    <Icon size={22} className="text-[#C9A66B]" strokeWidth={1.6} />
+                    <Icon
+                      size={22}
+                      className="text-[#C9A66B]"
+                      strokeWidth={1.6}
+                    />
                   </div>
                   <div>
                     <h4 className="font-sans font-bold text-xs sm:text-sm text-brand-black tracking-wide">
@@ -266,7 +320,6 @@ export default function Hero() {
             })}
           </div>
         </div>
-
       </div>
     </section>
   );

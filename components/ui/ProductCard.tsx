@@ -15,11 +15,11 @@ interface ProductCardProps {
   description: string;
   imageSrc: string;
   productId: number;
-  price?: number; // Added for Cart functionality
+  price?: number; 
   discountedPrice?: number | null;
   promoBadge?: string | null;
   deliveryBadge?: string | null;
-  stockQuantity?: number;
+  stockQuantity?: number; // Prop remains to not break APIs, but we ignore it for PL
 }
 
 export function ProductCard({ 
@@ -29,28 +29,22 @@ export function ProductCard({
   description, 
   imageSrc, 
   productId,
-  price = 0, // Default fallback
+  price = 0, 
   discountedPrice,
   promoBadge,
   deliveryBadge,
-  stockQuantity
 }: ProductCardProps) {
   const router = useRouter();
   const { addToCart } = useStore();
   const [isAdded, setIsAdded] = useState(false);
 
-  const isOutOfStock = stockQuantity !== undefined && stockQuantity <= 0;
+  // Removed isOutOfStock check completely for Private Label (always in stock)
   const effectivePrice = discountedPrice && discountedPrice < price ? discountedPrice : price;
 
   const handleCartAction = (e: React.MouseEvent | React.KeyboardEvent) => {
     // Prevent the click from bubbling up to the <Link> component
     e.preventDefault();
     e.stopPropagation();
-
-    if (isOutOfStock) {
-      router.push(`/product/${productId}`);
-      return;
-    }
 
     if (!isAdded) {
       addToCart(productId.toString(), 1, {
@@ -69,15 +63,13 @@ export function ProductCard({
 
       {/* Top Half: Cream/Gold Background */}
       <div className="relative h-[53%] w-full bg-gradient-to-b from-[#F3E9D7] to-[#E3CFA8] border-b border-[#C9A66B] overflow-hidden pt-4">
-        {isOutOfStock ? (
-          <div className="absolute top-3 left-3 z-20 bg-[#183629]/95 text-[#F3E9D7] text-[10px] uppercase font-bold tracking-[0.2em] px-2.5 py-1 rounded-sm shadow-md border border-[#C9A66B]/30">
-            Out of Stock
-          </div>
-        ) : promoBadge ? (
+        
+        {/* Out of stock badge removed. Only showing promo badges */}
+        {promoBadge && (
           <div className="absolute top-3 left-3 z-20 bg-[#C9A66B] text-[#183629] text-[10px] uppercase font-bold tracking-[0.2em] px-2.5 py-1 rounded-sm shadow-md">
             {promoBadge}
           </div>
-        ) : null}
+        )}
 
         {deliveryBadge && (
           <div className="absolute bottom-3 left-3 z-20 bg-white/95 backdrop-blur-xs text-[#183629] text-[9.5px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-sm border border-[#C9A66B]/30 flex items-center gap-1 shadow-xs">
@@ -139,13 +131,8 @@ export function ProductCard({
           tabIndex={0}
           onClick={handleCartAction}
           onKeyDown={(e) => e.key === 'Enter' && handleCartAction(e)}
-          className={`absolute bottom-5 right-5 w-11 h-11 rounded-full flex items-center justify-center shadow-lg transition-colors overflow-hidden z-10 ${
-            isOutOfStock 
-              ? 'bg-gray-400/80 text-gray-200 cursor-not-allowed opacity-60' 
-              : 'bg-[#C9A66B] hover:bg-[#b08e54] text-[#183629] cursor-pointer active:scale-95'
-          }`}
-          aria-label={isOutOfStock ? "Out of Stock" : isAdded ? "View Cart" : "Add to Cart"}
-          title={isOutOfStock ? "Out of Stock" : undefined}
+          className={`absolute bottom-5 right-5 w-11 h-11 rounded-full flex items-center justify-center shadow-lg transition-colors overflow-hidden z-10 bg-[#C9A66B] hover:bg-[#b08e54] text-[#183629] cursor-pointer active:scale-95`}
+          aria-label={isAdded ? "View Cart" : "Add to Cart"}
         >
           <AnimatePresence mode="wait">
             {!isAdded ? (
@@ -174,7 +161,6 @@ export function ProductCard({
           </AnimatePresence>
         </div>
       </div>
-
     </Link>
   );
 }

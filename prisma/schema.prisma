@@ -205,10 +205,22 @@ model AnnouncementBar {
 
   // Right: Social icons
   showSocialIcons Boolean @default(true)
-  instagramUrl    String  @default("https://instagram.com")
-  facebookUrl     String  @default("https://facebook.com")
-  tiktokUrl       String  @default("https://tiktok.com")
-  youtubeUrl      String  @default("https://youtube.com")
+  instagramUrl    String  @default("https://www.instagram.com/guls_collection26/")
+  facebookUrl     String  @default("https://www.facebook.com/profile.php?id=61595715104800")
+  tiktokUrl       String  @default("")
+  youtubeUrl      String  @default("")
+  linkedinUrl     String  @default("")
+  pinterestUrl    String  @default("")
+  threadsUrl      String  @default("https://www.threads.com/@guls_collection26/media")
+
+  // Individual Toggles
+  showInstagram   Boolean @default(true)
+  showFacebook    Boolean @default(true)
+  showTiktok      Boolean @default(false)
+  showYoutube     Boolean @default(false)
+  showLinkedin    Boolean @default(false)
+  showPinterest   Boolean @default(false)
+  showThreads     Boolean @default(true)
 
   // Styling
   bgColor         String  @default("#0b0f0e")

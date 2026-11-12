@@ -26,11 +26,12 @@ export async function PATCH(req: NextRequest) {
       'isVisible', 'message',
       'showPhone', 'phoneNumber', 'phoneLink',
       'showEmail', 'emailAddress', 'emailLink',
-      'showSocialIcons', 'instagramUrl', 'facebookUrl', 'tiktokUrl', 'youtubeUrl',
+      'showSocialIcons', 
+      'instagramUrl', 'facebookUrl', 'tiktokUrl', 'youtubeUrl', 'linkedinUrl', 'pinterestUrl', 'threadsUrl',
+      'showInstagram', 'showFacebook', 'showTiktok', 'showYoutube', 'showLinkedin', 'showPinterest', 'showThreads',
       'bgColor', 'textColor', 'accentColor', 'fontSize',
     ] as const;
 
-    // Only pick known fields to prevent mass-assignment
     const data: Record<string, unknown> = {};
     for (const key of allowed) {
       if (key in body) data[key] = body[key];
@@ -47,13 +48,26 @@ export async function PATCH(req: NextRequest) {
         phoneNumber: data.phoneNumber as string ?? '0333-2265461',
         phoneLink: data.phoneLink as string ?? 'tel:03332265461',
         showEmail: data.showEmail as boolean ?? true,
-        emailAddress: data.emailAddress as string ?? 'gulscollection@gmail.com',
-        emailLink: data.emailLink as string ?? 'mailto:gulscollection@gmail.com',
+        emailAddress: data.emailAddress as string ?? 'gulscollection.2617@gmail.com',
+        emailLink: data.emailLink as string ?? 'mailto:gulscollection.2617@gmail.com',
+        
         showSocialIcons: data.showSocialIcons as boolean ?? true,
-        instagramUrl: data.instagramUrl as string ?? 'https://instagram.com',
-        facebookUrl: data.facebookUrl as string ?? 'https://facebook.com',
-        tiktokUrl: data.tiktokUrl as string ?? 'https://tiktok.com',
-        youtubeUrl: data.youtubeUrl as string ?? 'https://youtube.com',
+        instagramUrl: data.instagramUrl as string ?? '',
+        facebookUrl: data.facebookUrl as string ?? '',
+        tiktokUrl: data.tiktokUrl as string ?? '',
+        youtubeUrl: data.youtubeUrl as string ?? '',
+        linkedinUrl: data.linkedinUrl as string ?? '',
+        pinterestUrl: data.pinterestUrl as string ?? '',
+        threadsUrl: data.threadsUrl as string ?? '',
+
+        showInstagram: data.showInstagram as boolean ?? true,
+        showFacebook: data.showFacebook as boolean ?? true,
+        showTiktok: data.showTiktok as boolean ?? false,
+        showYoutube: data.showYoutube as boolean ?? false,
+        showLinkedin: data.showLinkedin as boolean ?? false,
+        showPinterest: data.showPinterest as boolean ?? false,
+        showThreads: data.showThreads as boolean ?? false,
+
         bgColor: data.bgColor as string ?? '#0b0f0e',
         textColor: data.textColor as string ?? '#F5F5F0',
         accentColor: data.accentColor as string ?? '#C9A66B',
@@ -67,4 +81,3 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ error: 'Failed to save announcement bar settings.' }, { status: 500 });
   }
 }
-

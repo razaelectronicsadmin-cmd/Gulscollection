@@ -10,6 +10,7 @@ import OurMission from '@/components/home/OurMission';
 import WhyChooseUs from '@/components/home/WhyChooseUs';
 import OurProcess from '@/components/home/OurProcess';
 import Footer from '@/components/Footer';
+import VideoBentoGrid from '@/components/home/VideoBentoGrid';
 
 export const dynamic = 'force-dynamic';
 
@@ -18,6 +19,7 @@ export default function Home() {
     <main className="relative min-h-screen bg-brand-white text-brand-black">
       <Navbar />
       <Hero />
+      <VideoBentoGrid />
       <AboutUs />
       <CollectionsShowcase />
       <OurMission />

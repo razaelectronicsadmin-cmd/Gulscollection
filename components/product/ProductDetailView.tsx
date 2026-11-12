@@ -34,7 +34,7 @@ export interface FormattedProduct {
   image: string;
   images?: string[];
   department?: string;
-  stockQuantity?: number;
+  stockQuantity?: number; // Kept to avoid API breaking, but ignored in UI
   category: string;
   categoryTitle: string;
   topNote?: string | null;
@@ -62,8 +62,6 @@ export default function ProductDetailView({ product }: { product: FormattedProdu
   const [activeAccordion, setActiveAccordion] = useState<string | null>('notes');
   const [isAddedToCart, setIsAddedToCart] = useState(false);
 
-  // Fallback state is handled by the parent page component (ProductDetailsPage), 
-  // but keeping a safety check here just in case.
   if (!product) return null;
 
   const currentDisplayImage = activeImage || product.image;
@@ -190,11 +188,6 @@ export default function ProductDetailView({ product }: { product: FormattedProdu
             <h1 className="text-4xl md:text-5xl font-serif text-[#183629] font-bold tracking-wide uppercase leading-tight">
               {product.name}
             </h1>
-            {product.stockQuantity !== undefined && product.stockQuantity <= 0 && (
-              <span className="inline-flex items-center px-2.5 py-1 rounded-sm text-[11px] font-bold uppercase tracking-wider bg-red-100 text-red-800 border border-red-200">
-                Out of Stock
-              </span>
-            )}
           </div>
 
           {/* Dynamic Pricing with Promotions */}
@@ -223,90 +216,71 @@ export default function ProductDetailView({ product }: { product: FormattedProdu
             {product.description}
           </p>
 
-          {/* Low Stock Warning */}
-          {product.stockQuantity !== undefined && product.stockQuantity > 0 && product.stockQuantity <= 5 && (
-            <p className="text-xs text-amber-700 font-medium mb-6 flex items-center gap-2 bg-amber-50 border border-amber-200/60 rounded px-3 py-1.5 w-fit">
-              <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
-              Only {product.stockQuantity} item(s) left in stock — order soon.
-            </p>
-          )}
-
-          {/* Quantity & Add to Cart/View Cart Area */}
-          {product.stockQuantity !== undefined && product.stockQuantity <= 0 ? (
-            <div className="mb-8">
-              <div className="w-full h-[52px] flex items-center justify-center space-x-3 bg-gray-100 text-gray-500 font-semibold tracking-[0.15em] text-[12px] uppercase rounded-sm border border-gray-200 cursor-not-allowed">
-                <span>Currently Out of Stock</span>
-              </div>
-              <p className="text-xs text-gray-400 mt-2">
-                This item is temporarily unavailable. Check back soon or contact customer support for restock updates.
-              </p>
+          {/* Quantity & Add to Cart/View Cart Area - Always Available */}
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 mb-8 overflow-hidden">
+            <div className="flex items-center justify-between border border-[#C9A66B]/40 rounded-sm w-full sm:w-1/3 px-5 py-3 bg-white">
+              <button
+                type="button"
+                onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                className="text-[#8C7A5B] hover:text-[#183629] transition-colors p-1 cursor-pointer disabled:opacity-40"
+                aria-label="Decrease quantity"
+                disabled={isAddedToCart || quantity <= 1}
+              >
+                <Minus size={16} />
+              </button>
+              <span className="text-[14px] font-medium text-[#183629]">{quantity}</span>
+              <button
+                type="button"
+                onClick={() => setQuantity(Math.min(99, quantity + 1))} // Allows up to 99 items per order
+                className="text-[#8C7A5B] hover:text-[#183629] transition-colors p-1 cursor-pointer disabled:opacity-40"
+                aria-label="Increase quantity"
+                disabled={isAddedToCart}
+              >
+                <Plus size={16} />
+              </button>
             </div>
-          ) : (
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 mb-8 overflow-hidden">
-              <div className="flex items-center justify-between border border-[#C9A66B]/40 rounded-sm w-full sm:w-1/3 px-5 py-3 bg-white">
-                <button
-                  type="button"
-                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                  className="text-[#8C7A5B] hover:text-[#183629] transition-colors p-1 cursor-pointer disabled:opacity-40"
-                  aria-label="Decrease quantity"
-                  disabled={isAddedToCart || quantity <= 1}
-                >
-                  <Minus size={16} />
-                </button>
-                <span className="text-[14px] font-medium text-[#183629]">{quantity}</span>
-                <button
-                  type="button"
-                  onClick={() => setQuantity(Math.min(product.stockQuantity ?? 99, quantity + 1))}
-                  className="text-[#8C7A5B] hover:text-[#183629] transition-colors p-1 cursor-pointer disabled:opacity-40"
-                  aria-label="Increase quantity"
-                  disabled={isAddedToCart || (product.stockQuantity !== undefined && quantity >= product.stockQuantity)}
-                >
-                  <Plus size={16} />
-                </button>
-              </div>
 
-              <div className="flex-1 relative w-full h-[52px]"> {/* Fixed height container for smooth sliding */}
-                <AnimatePresence initial={false} mode="wait">
-                  {!isAddedToCart ? (
-                    <motion.div
-                      key="add-btn"
-                      initial={{ y: -30, opacity: 0 }}
-                      animate={{ y: 0, opacity: 1 }}
-                      exit={{ y: 30, opacity: 0 }}
-                      transition={{ type: "tween", duration: 0.3 }}
-                      className="absolute inset-0"
+            <div className="flex-1 relative w-full h-[52px]"> {/* Fixed height container for smooth sliding */}
+              <AnimatePresence initial={false} mode="wait">
+                {!isAddedToCart ? (
+                  <motion.div
+                    key="add-btn"
+                    initial={{ y: -30, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    exit={{ y: 30, opacity: 0 }}
+                    transition={{ type: "tween", duration: 0.3 }}
+                    className="absolute inset-0"
+                  >
+                    <Button
+                      onClick={handleAddToCart}
+                      className="w-full h-full flex items-center justify-center space-x-3 bg-[#183629] text-[#F3E9D7] hover:bg-[#11261d] hover:text-[#C9A66B] transition-colors tracking-[0.15em] text-[12px] rounded-sm shadow-md"
                     >
-                      <Button
-                        onClick={handleAddToCart}
-                        className="w-full h-full flex items-center justify-center space-x-3 bg-[#183629] text-[#F3E9D7] hover:bg-[#11261d] hover:text-[#C9A66B] transition-colors tracking-[0.15em] text-[12px] rounded-sm shadow-md"
-                      >
-                        <ShoppingBag size={16} />
-                        <span>ADD TO CART — PKR {(effectivePrice * quantity).toLocaleString()}</span>
-                      </Button>
-                    </motion.div>
-                  ) : (
-                    <motion.div
-                      key="view-btn"
-                      initial={{ y: -30, opacity: 0 }}
-                      animate={{ y: 0, opacity: 1 }}
-                      exit={{ y: 30, opacity: 0 }}
-                      transition={{ type: "tween", duration: 0.3 }}
-                      className="absolute inset-0"
+                      <ShoppingBag size={16} />
+                      <span>ADD TO CART — PKR {(effectivePrice * quantity).toLocaleString()}</span>
+                    </Button>
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key="view-btn"
+                    initial={{ y: -30, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    exit={{ y: 30, opacity: 0 }}
+                    transition={{ type: "tween", duration: 0.3 }}
+                    className="absolute inset-0"
+                  >
+                    <Button
+                      onClick={handleViewCart}
+                      className="w-full h-full flex items-center justify-center space-x-3 bg-[#C9A66B] text-[#183629] hover:bg-[#b08e54] transition-colors tracking-[0.15em] text-[12px] rounded-sm shadow-md"
                     >
-                      <Button
-                        onClick={handleViewCart}
-                        className="w-full h-full flex items-center justify-center space-x-3 bg-[#C9A66B] text-[#183629] hover:bg-[#b08e54] transition-colors tracking-[0.15em] text-[12px] rounded-sm shadow-md"
-                      >
-                        <CheckCircle2 size={16} />
-                        <span>VIEW CART</span>
-                        <ArrowRight size={14} />
-                      </Button>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
+                      <CheckCircle2 size={16} />
+                      <span>VIEW CART</span>
+                      <ArrowRight size={14} />
+                    </Button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
-          )}
+          </div>
 
           {/* Dynamic Delivery & Guarantees Highlight Box */}
           <div className="mb-10 p-4 rounded-sm bg-white border border-[#C9A66B]/25 shadow-xs space-y-3 font-sans">

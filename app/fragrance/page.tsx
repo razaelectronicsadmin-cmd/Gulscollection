@@ -5,6 +5,8 @@ import ShopHero from '@/components/fragrance/ShopHero';
 import FragranceCatalog, { CatalogProduct } from '@/components/fragrance/FragranceCatalog';
 import prisma from '@/lib/prisma';
 import { Prisma } from '@prisma/client';
+import Link from 'next/link';
+import { Sparkles, ArrowLeft } from 'lucide-react';
 
 interface FragrancePageProps {
   searchParams: Promise<{
@@ -107,7 +109,11 @@ export default async function FragrancePage({ searchParams }: FragrancePageProps
 
   // 4. Server-Side Data Fetching
   const now = new Date();
-  const [totalCount, rawProducts, deliverySetting, activePromotions] = await Promise.all([
+  const [departmentProductCount, totalCount, rawProducts, deliverySetting, activePromotions] = await Promise.all([
+    // Check if the entire department is empty (for "Coming Soon" card)
+    prisma.product.count({ 
+      where: activeDepartment && activeDepartment !== 'All' ? { department: activeDepartment } : {} 
+    }),
     prisma.product.count({ where }),
     prisma.product.findMany({
       where,
@@ -217,28 +223,51 @@ export default async function FragrancePage({ searchParams }: FragrancePageProps
         department={activeDepartment}
       />
 
-      {/* Interactive Catalog Component */}
-      <Suspense 
-        fallback={
-          <div className="min-h-[400px] flex items-center justify-center text-[#C9A66B] font-sans text-sm uppercase tracking-widest font-medium">
-            Loading collections...
+      {/* Conditional Rendering: Coming Soon Card vs Catalog */}
+      {departmentProductCount === 0 ? (
+        <div className="max-w-7xl mx-auto px-6 md:px-14 py-24 md:py-32 flex items-center justify-center">
+          <div className="max-w-lg w-full bg-white border border-[#C9A66B]/20 rounded-sm shadow-sm p-10 md:p-14 text-center flex flex-col items-center">
+            <div className="w-14 h-14 rounded-full bg-[#C9A66B]/10 flex items-center justify-center mb-6">
+              <Sparkles className="w-6 h-6 text-[#C9A66B]" />
+            </div>
+            <h2 className="text-2xl md:text-3xl font-serif text-[#183629] font-bold uppercase tracking-[0.15em] mb-4">
+              Coming Soon
+            </h2>
+            <p className="text-sm md:text-base font-sans text-[#8C7A5B] leading-relaxed mb-8">
+              We are currently curating the exclusive <span className="font-semibold text-[#183629]">{activeDepartment}</span> collection. True luxury takes time. Stay tuned for the grand unveiling.
+            </p>
+            <Link 
+              href="/" 
+              className="inline-flex items-center gap-2 px-8 py-3.5 bg-[#183629] text-[#F3E9D7] text-xs uppercase tracking-[0.2em] font-semibold hover:bg-[#11261d] hover:text-[#C9A66B] transition-colors rounded-xs shadow-md"
+            >
+              <ArrowLeft size={16} />
+              Return to Home
+            </Link>
           </div>
-        }
-      >
-        <FragranceCatalog
-          products={products}
-          categories={filteredCategoriesForCatalog}
-          allCategories={rawCategories}
-          totalProducts={totalCount}
-          totalPages={totalPages}
-          currentPage={page}
-          selectedCollection={collection}
-          selectedGender={gender}
-          selectedDepartment={activeDepartment}
-          searchQuery={search}
-          sortBy={sort}
-        />
-      </Suspense>
+        </div>
+      ) : (
+        <Suspense 
+          fallback={
+            <div className="min-h-[400px] flex items-center justify-center text-[#C9A66B] font-sans text-sm uppercase tracking-widest font-medium">
+              Loading collections...
+            </div>
+          }
+        >
+          <FragranceCatalog
+            products={products}
+            categories={filteredCategoriesForCatalog}
+            allCategories={rawCategories}
+            totalProducts={totalCount}
+            totalPages={totalPages}
+            currentPage={page}
+            selectedCollection={collection}
+            selectedGender={gender}
+            selectedDepartment={activeDepartment}
+            searchQuery={search}
+            sortBy={sort}
+          />
+        </Suspense>
+      )}
 
       <Footer />
     </main>
