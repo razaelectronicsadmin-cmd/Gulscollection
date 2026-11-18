@@ -40,10 +40,10 @@ const slides: Slide[] = [
     tagline: "HANDCRAFTED FULL-GRAIN LUXURY",
     title: "Leather",
     subtitle: "ATELIER",
-    buttonText: "COMING SOON",
-    buttonLink: "#",
+    buttonText: "SHOP NOW",
+    buttonLink: "/fragrance?department=Leather",
     image: "/images/cover-1.jpeg",
-    disabled: true, // Disable the button for Leather category
+    disabled: false,
   },
   {
     id: 3,

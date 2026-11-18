@@ -2,14 +2,13 @@
 
 import { useState, useEffect, useRef, Suspense } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Search, ShoppingBag, Phone, Mail, Menu, X, ArrowRight, Instagram, Facebook, AtSign, Linkedin, Tv, Youtube  } from 'lucide-react';
+import { Search, ShoppingBag, Phone, Mail, Menu, X, ArrowRight, Instagram, Facebook, AtSign, Linkedin, Tv, Youtube } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { useStore } from '@/context/StoreContext';
 import { Button } from '@/components/ui/Button';
-
 
 export interface AnnouncementBarData {
   id?: number;
@@ -54,41 +53,11 @@ function NavbarInner() {
   const [searchQuery, setSearchQuery] = useState('');
   const searchInputRef = useRef<HTMLInputElement>(null);
 
-  const [announcement, setAnnouncement] = useState<AnnouncementBarData>({
-    isVisible: true,
-    message: 'FREE DELIVERY ON ORDERS ABOVE PKR 5,000',
-    showPhone: true,
-    phoneNumber: '0333-2265461',
-    phoneLink: 'tel:03332265461',
-    showEmail: true,
-    emailAddress: 'gulscollection2617',
-    emailLink: 'mailto:gulscollection2617@gmail.com',
-    showSocialIcons: true,
-    instagramUrl: '',
-    facebookUrl: '',
-    tiktokUrl: '',
-    youtubeUrl: '',
-    linkedinUrl: '',
-    pinterestUrl: '',
-    threadsUrl: '',
-    
-    // Yahan missing fields add kiye hain
-    showInstagram: true,
-    showFacebook: true,
-    showTiktok: false,
-    showYoutube: false,
-    showLinkedin: false,
-    showPinterest: false,
-    showThreads: false,
-    
-    bgColor: '#0b0f0e',
-    textColor: '#F5F5F0',
-    accentColor: '#C9A66B',
-    fontSize: 'sm',
-  });
+  // Announcement state (Initialized as null to prevent hardcoded flash)
+  const [announcement, setAnnouncement] = useState<AnnouncementBarData | null>(null);
 
   const pathname = usePathname();
-  const searchParams = useSearchParams(); // Naya hook add kiya
+  const searchParams = useSearchParams();
   const router = useRouter();
   const { cart } = useStore();
 
@@ -97,11 +66,9 @@ function NavbarInner() {
     
     if (href.includes('department=')) {
       const targetDept = href.split('department=')[1];
-      const currentDept = searchParams.get('department'); // window.location ki jagah Next.js ka hook
+      const currentDept = searchParams.get('department');
       
       if (currentDept === targetDept) return true;
-      
-      // Default active state for Fragrance if no department query is present in URL
       if (targetDept === 'Fragrance' && pathname === '/fragrance' && !currentDept) return true;
       
       return false;
@@ -112,16 +79,78 @@ function NavbarInner() {
 
   const cartCount = cart.reduce((total, item) => total + item.quantity, 0);
 
-  // Fetch announcement bar settings from DB
+  // Fetch announcement bar settings from DB on mount
   useEffect(() => {
     fetch('/api/announcement')
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
         if (data && typeof data.isVisible === 'boolean') {
           setAnnouncement(data);
+        } else {
+          // Fallback if data structure is empty/invalid so it doesn't stay null forever
+          setAnnouncement({
+            isVisible: false,
+            message: '',
+            showPhone: false,
+            phoneNumber: '',
+            phoneLink: '',
+            showEmail: false,
+            emailAddress: '',
+            emailLink: '',
+            showSocialIcons: false,
+            instagramUrl: '',
+            facebookUrl: '',
+            tiktokUrl: '',
+            youtubeUrl: '',
+            linkedinUrl: '',
+            pinterestUrl: '',
+            threadsUrl: '',
+            showInstagram: false,
+            showFacebook: false,
+            showTiktok: false,
+            showYoutube: false,
+            showLinkedin: false,
+            showPinterest: false,
+            showThreads: false,
+            bgColor: '#0b0f0e',
+            textColor: '#F5F5F0',
+            accentColor: '#C9A66B',
+            fontSize: 'sm',
+          });
         }
       })
-      .catch(() => {});
+      .catch(() => {
+        // Fallback on error
+        setAnnouncement({
+          isVisible: false,
+          message: '',
+          showPhone: false,
+          phoneNumber: '',
+          phoneLink: '',
+          showEmail: false,
+          emailAddress: '',
+          emailLink: '',
+          showSocialIcons: false,
+          instagramUrl: '',
+          facebookUrl: '',
+          tiktokUrl: '',
+          youtubeUrl: '',
+          linkedinUrl: '',
+          pinterestUrl: '',
+          threadsUrl: '',
+          showInstagram: false,
+          showFacebook: false,
+          showTiktok: false,
+          showYoutube: false,
+          showLinkedin: false,
+          showPinterest: false,
+          showThreads: false,
+          bgColor: '#0b0f0e',
+          textColor: '#F5F5F0',
+          accentColor: '#C9A66B',
+          fontSize: 'sm',
+        });
+      });
   }, []);
 
   useEffect(() => {
@@ -170,246 +199,229 @@ function NavbarInner() {
 
   return (
     <>
+      <header className="sticky top-0 left-0 w-full z-50">
+        {/* ─── Top Announcement & Contact Ribbon (Only renders when announcement data is loaded & visible) ───────── */}
+        {announcement && announcement.isVisible && (
+          <div 
+            style={{ 
+              backgroundColor: announcement.bgColor, 
+              color: announcement.textColor,
+              borderBottomColor: `${announcement.accentColor}33`,
+            }}
+            className={cn(
+              "w-full border-b px-5 font-sans transition-colors duration-300",
+              announcement.fontSize === 'xs' ? 'text-[11px]' :
+              announcement.fontSize === 'base' ? 'text-[14px] md:text-[15px]' :
+              'text-xs md:text-sm'
+            )}
+          >
+            <div className="w-full h-11 md:h-12 grid grid-cols-1 md:grid-cols-3 items-center">
+              
+              {/* Left: Contact Info */}
+              <div className="hidden md:flex items-center space-x-6 justify-start">
+                {announcement.showPhone && (
+                  <a
+                    href={announcement.phoneLink || 'tel:03332265461'}
+                    className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+                  >
+                    <Phone size={15} style={{ color: announcement.accentColor }} />
+                    <span>{announcement.phoneNumber}</span>
+                  </a>
+                )}
+                {announcement.showEmail && (
+                  <a
+                    href={announcement.emailLink || 'mailto:gulscollection@gmail.com'}
+                    className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+                  >
+                    <Mail size={15} style={{ color: announcement.accentColor }} />
+                    <span>{announcement.emailAddress}</span>
+                  </a>
+                )}
+              </div>
 
-<header className="sticky top-0 left-0 w-full z-50">
-    {/* ─── Top Announcement & Contact Ribbon ───────── */}
-    {announcement.isVisible && (
-      <div 
-        style={{ 
-          backgroundColor: announcement.bgColor, 
-          color: announcement.textColor,
-          borderBottomColor: `${announcement.accentColor}33`,
-        }}
-        className={cn(
-          "w-full border-b px-5 font-sans transition-colors duration-300",
-          announcement.fontSize === 'xs' ? 'text-[11px]' :
-          announcement.fontSize === 'base' ? 'text-[14px] md:text-[15px]' :
-          'text-xs md:text-sm'
+              {/* Center: Announcement Text */}
+              <div className="w-full text-center font-semibold tracking-[1.5px] uppercase truncate px-2">
+                {announcement.message}
+              </div>
+
+              {/* Right: Social Media Links */}
+              <div className="hidden md:flex items-center space-x-4 justify-end">
+                {announcement.showSocialIcons && (
+                  <>
+                    <span className="opacity-70 text-[11px] uppercase tracking-wider">Follow Us:</span>
+                    <div className="flex items-center space-x-4" style={{ color: announcement.accentColor }}>
+                      {announcement.showInstagram && announcement.instagramUrl && (
+                        <a href={announcement.instagramUrl} target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="hover:opacity-80 transition-opacity">
+                          <Instagram size={16} strokeWidth={1.5} />
+                        </a>
+                      )}
+                      {announcement.showFacebook && announcement.facebookUrl && (
+                        <a href={announcement.facebookUrl} target="_blank" rel="noopener noreferrer" aria-label="Facebook" className="hover:opacity-80 transition-opacity">
+                          <Facebook size={16} strokeWidth={1.5} />
+                        </a>
+                      )}
+                      {announcement.showThreads && announcement.threadsUrl && (
+                        <a href={announcement.threadsUrl} target="_blank" rel="noopener noreferrer" aria-label="Threads" className="hover:opacity-80 transition-opacity">
+                          <AtSign size={16} strokeWidth={1.5} />
+                        </a>
+                      )}
+                      {announcement.showLinkedin && announcement.linkedinUrl && (
+                        <a href={announcement.linkedinUrl} target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" className="hover:opacity-80 transition-opacity">
+                          <Linkedin size={16} strokeWidth={1.5} />
+                        </a>
+                      )}
+                      {announcement.showPinterest && announcement.pinterestUrl && (
+                        <a href={announcement.pinterestUrl} target="_blank" rel="noopener noreferrer" aria-label="Pinterest" className="hover:opacity-80 transition-opacity flex items-center justify-center font-serif font-bold text-[14px]">
+                          P
+                        </a>
+                      )}
+                      {announcement.showTiktok && announcement.tiktokUrl && (
+                        <a href={announcement.tiktokUrl} target="_blank" rel="noopener noreferrer" aria-label="TikTok" className="hover:opacity-80 transition-opacity">
+                          <Tv size={16} strokeWidth={1.5} />
+                        </a>
+                      )}
+                      {announcement.showYoutube && announcement.youtubeUrl && (
+                        <a href={announcement.youtubeUrl} target="_blank" rel="noopener noreferrer" aria-label="YouTube" className="hover:opacity-80 transition-opacity">
+                          <Youtube size={16} strokeWidth={1.5} />
+                        </a>
+                      )}
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
         )}
-      >
-        {/* Changed from Flex to Grid for absolute centering */}
-        <div className="w-full h-11 md:h-12 grid grid-cols-1 md:grid-cols-3 items-center">
-          
-          {/* Left: Contact Info */}
-          <div className="hidden md:flex items-center space-x-6 justify-start">
-            {announcement.showPhone && (
-              <a
-                href={announcement.phoneLink || 'tel:03332265461'}
-                className="flex items-center gap-2 hover:opacity-80 transition-opacity"
-              >
-                <Phone size={15} style={{ color: announcement.accentColor }} />
-                <span>{announcement.phoneNumber}</span>
-              </a>
-            )}
-            {announcement.showEmail && (
-              <a
-                href={announcement.emailLink || 'mailto:gulscollection@gmail.com'}
-                className="flex items-center gap-2 hover:opacity-80 transition-opacity"
-              >
-                <Mail size={15} style={{ color: announcement.accentColor }} />
-                <span>{announcement.emailAddress}</span>
-              </a>
-            )}
-          </div>
 
-          {/* Center: Announcement Text */}
-          <div className="w-full text-center font-semibold tracking-[1.5px] uppercase truncate px-2">
-            {announcement.message}
-          </div>
-
-          {/* Right: Social Media Links */}
-          <div className="hidden md:flex items-center space-x-4 justify-end">
-            {announcement.showSocialIcons && (
-              <>
-                <span className="opacity-70 text-[11px] uppercase tracking-wider">Follow Us:</span>
-                <div className="flex items-center space-x-4" style={{ color: announcement.accentColor }}>
-                  
-                  {/* Instagram */}
-                  {announcement.showInstagram && announcement.instagramUrl && (
-                    <a href={announcement.instagramUrl} target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="hover:opacity-80 transition-opacity">
-                      <Instagram size={16} strokeWidth={1.5} />
-                    </a>
-                  )}
-
-                  {/* Facebook */}
-                  {announcement.showFacebook && announcement.facebookUrl && (
-                    <a href={announcement.facebookUrl} target="_blank" rel="noopener noreferrer" aria-label="Facebook" className="hover:opacity-80 transition-opacity">
-                      <Facebook size={16} strokeWidth={1.5} />
-                    </a>
-                  )}
-
-                  {/* Threads (Using AtSign) */}
-                  {announcement.showThreads && announcement.threadsUrl && (
-                    <a href={announcement.threadsUrl} target="_blank" rel="noopener noreferrer" aria-label="Threads" className="hover:opacity-80 transition-opacity">
-                      <AtSign size={16} strokeWidth={1.5} />
-                    </a>
-                  )}
-
-                  {/* LinkedIn */}
-                  {announcement.showLinkedin && announcement.linkedinUrl && (
-                    <a href={announcement.linkedinUrl} target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" className="hover:opacity-80 transition-opacity">
-                      <Linkedin size={16} strokeWidth={1.5} />
-                    </a>
-                  )}
-
-                  {/* Pinterest (Using a text fallback or alternative icon, as Lucide doesn't have Pinterest) */}
-                  {announcement.showPinterest && announcement.pinterestUrl && (
-                    <a href={announcement.pinterestUrl} target="_blank" rel="noopener noreferrer" aria-label="Pinterest" className="hover:opacity-80 transition-opacity flex items-center justify-center font-serif font-bold text-[14px]">
-                      P
-                    </a>
-                  )}
-
-                  {/* TikTok (Using Tv icon as alternative) */}
-                  {announcement.showTiktok && announcement.tiktokUrl && (
-                    <a href={announcement.tiktokUrl} target="_blank" rel="noopener noreferrer" aria-label="TikTok" className="hover:opacity-80 transition-opacity">
-                      <Tv size={16} strokeWidth={1.5} />
-                    </a>
-                  )}
-
-                  {/* YouTube */}
-                  {announcement.showYoutube && announcement.youtubeUrl && (
-                    <a href={announcement.youtubeUrl} target="_blank" rel="noopener noreferrer" aria-label="YouTube" className="hover:opacity-80 transition-opacity">
-                      <Youtube size={16} strokeWidth={1.5} />
-                    </a>
-                  )}
-                </div>
-              </>
-            )}
-          </div>
-        </div>
-      </div>
-    )}
-      <nav
-        className={cn(
+        <nav
+          className={cn(
             'w-full transition-all duration-300 ease-in-out px-6 md:px-14',
             isScrolled
               ? 'bg-brand-green-dark/95 backdrop-blur-md shadow-soft-md'
               : 'bg-brand-green-dark backdrop-blur-sm'
           )}
         >
-        <div className="max-w-7xl mx-auto h-[91px] flex items-center justify-between">
-          {/* Left: Brand Logo Image */}
-          <Link href="/" className="relative flex items-center justify-center transition-transform hover:scale-105">
-            <Image
-              src="/images/guls-logo.png"
-              alt="Gul's Collection"
-              width={94}
-              height={58}
-              className="object-contain"
-              priority
-            />
-          </Link>
-
-          {/* Center: Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-7 h-full">
-            {navLinks.map((link) => {
-              const isActive = isLinkActive(link.href);
-
-              return (
-                <Link
-                  key={link.name}
-                  href={link.href}
-                  className={cn(
-                    'relative h-full flex items-center text-[13px] uppercase tracking-[1.5px] transition-all duration-200 active:scale-95 cursor-pointer font-sans',
-                    isActive
-                      ? 'text-brand-gold font-semibold'
-                      : 'text-[#F5F5F0] hover:text-brand-gold font-normal'
-                  )}
-                >
-                  {link.name}
-                  {isActive && (
-                    <span className="absolute bottom-[28px] left-0 w-full h-[2px] bg-brand-gold" />
-                  )}
-                </Link>
-              );
-            })}
-          </div>
-
-          {/* Right: Actions & Button */}
-          <div className="flex items-center space-x-6 text-[#F5F5F0]">
-            
-            {/* Actionable Search */}
-            <div className="relative">
-              <button
-                onClick={() => setIsSearchOpen((prev) => !prev)}
-                aria-label="Search Fragrances"
-                className="hover:text-brand-gold transition-colors cursor-pointer flex items-center"
-              >
-                <Search size={20} strokeWidth={1.5} />
-              </button>
-
-              {/* Desktop Quick Search dropdown */}
-              <AnimatePresence>
-                {isSearchOpen && (
-                  <>
-                    {/* Backdrop to close on click outside */}
-                    <div 
-                      className="fixed inset-0 z-40 bg-black/20" 
-                      onClick={() => setIsSearchOpen(false)} 
-                    />
-                    <motion.div
-                      initial={{ opacity: 0, y: -10, scale: 0.95 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 0, y: -10, scale: 0.95 }}
-                      transition={{ duration: 0.2 }}
-                      className="absolute right-0 top-12 w-80 md:w-96 bg-[#183629] border border-[#C9A66B]/40 rounded-md shadow-2xl p-3 z-50"
-                    >
-                      <form onSubmit={handleSearchSubmit} className="flex items-center gap-2">
-                        <input
-                          ref={searchInputRef}
-                          type="text"
-                          value={searchQuery}
-                          onChange={(e) => setSearchQuery(e.target.value)}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Escape') setIsSearchOpen(false);
-                          }}
-                          placeholder="Search fragrances, leather, essentials..."
-                          className="w-full text-xs bg-[#0f241b] px-3.5 py-2.5 rounded-sm text-brand-white placeholder-brand-beige/50 outline-none border border-[#C9A66B]/20 focus:border-[#C9A66B] font-sans"
-                        />
-                        <button
-                          type="submit"
-                          className="px-4 py-2.5 bg-[#C9A66B] text-[#183629] text-[12px] uppercase tracking-wider font-bold rounded-sm hover:bg-[#d8b57a] transition-colors shrink-0 cursor-pointer font-sans shadow-sm"
-                        >
-                          Search
-                        </button>
-                      </form>
-                    </motion.div>
-                  </>
-                )}
-              </AnimatePresence>
-            </div>
-
-            <Link
-              href="/cart"
-              aria-label="Shopping Bag"
-              className="relative hover:text-brand-gold transition-colors active:scale-95"
-            >
-              <ShoppingBag size={20} strokeWidth={1.5} />
-              {cartCount > 0 && (
-                <span className="absolute -top-1.5 -right-2 bg-brand-gold text-brand-green-dark text-[12px] w-4 h-4 rounded-full flex items-center justify-center font-bold">
-                  {cartCount}
-                </span>
-              )}
+          <div className="max-w-7xl mx-auto h-[91px] flex items-center justify-between">
+            {/* Left: Brand Logo Image */}
+            <Link href="/" className="relative flex items-center justify-center transition-transform hover:scale-105">
+              <Image
+                src="/images/guls-logo.png"
+                alt="Gul's Collection"
+                width={94}
+                height={58}
+                className="object-contain"
+                priority
+              />
             </Link>
 
-            {/* Figma Gold Button (Desktop Only) */}
-            <div className="hidden lg:block">
-              <Button href="/fragrance" className="!py-[7.5px] !px-[20px] !text-[12px] tracking-[2.4px]">
-                Explore Scents
-              </Button>
+            {/* Center: Desktop Navigation */}
+            <div className="hidden md:flex items-center space-x-7 h-full">
+              {navLinks.map((link) => {
+                const isActive = isLinkActive(link.href);
+
+                return (
+                  <Link
+                    key={link.name}
+                    href={link.href}
+                    className={cn(
+                      'relative h-full flex items-center text-[13px] uppercase tracking-[1.5px] transition-all duration-200 active:scale-95 cursor-pointer font-sans',
+                      isActive
+                        ? 'text-brand-gold font-semibold'
+                        : 'text-[#F5F5F0] hover:text-brand-gold font-normal'
+                    )}
+                  >
+                    {link.name}
+                    {isActive && (
+                      <span className="absolute bottom-[28px] left-0 w-full h-[2px] bg-brand-gold" />
+                    )}
+                  </Link>
+                );
+              })}
             </div>
 
-            {/* Mobile Menu Toggle */}
-            <button
-              className="md:hidden hover:text-brand-gold transition-colors cursor-pointer p-1 active:scale-95"
-              onClick={() => setIsMobileMenuOpen(true)}
-              aria-label="Open Menu"
-            >
-              <Menu size={24} />
-            </button>
+            {/* Right: Actions & Button */}
+            <div className="flex items-center space-x-6 text-[#F5F5F0]">
+              
+              {/* Actionable Search */}
+              <div className="relative">
+                <button
+                  onClick={() => setIsSearchOpen((prev) => !prev)}
+                  aria-label="Search Fragrances"
+                  className="hover:text-brand-gold transition-colors cursor-pointer flex items-center"
+                >
+                  <Search size={20} strokeWidth={1.5} />
+                </button>
+
+                <AnimatePresence>
+                  {isSearchOpen && (
+                    <>
+                      <div 
+                        className="fixed inset-0 z-40 bg-black/20" 
+                        onClick={() => setIsSearchOpen(false)} 
+                      />
+                      <motion.div
+                        initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                        transition={{ duration: 0.2 }}
+                        className="absolute right-0 top-12 w-80 md:w-96 bg-[#183629] border border-[#C9A66B]/40 rounded-md shadow-2xl p-3 z-50"
+                      >
+                        <form onSubmit={handleSearchSubmit} className="flex items-center gap-2">
+                          <input
+                            ref={searchInputRef}
+                            type="text"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Escape') setIsSearchOpen(false);
+                            }}
+                            placeholder="Search fragrances, leather, essentials..."
+                            className="w-full text-xs bg-[#0f241b] px-3.5 py-2.5 rounded-sm text-brand-white placeholder-brand-beige/50 outline-none border border-[#C9A66B]/20 focus:border-[#C9A66B] font-sans"
+                          />
+                          <button
+                            type="submit"
+                            className="px-4 py-2.5 bg-[#C9A66B] text-[#183629] text-[12px] uppercase tracking-wider font-bold rounded-sm hover:bg-[#d8b57a] transition-colors shrink-0 cursor-pointer font-sans shadow-sm"
+                          >
+                            Search
+                          </button>
+                        </form>
+                      </motion.div>
+                    </>
+                  )}
+                </AnimatePresence>
+              </div>
+
+              <Link
+                href="/cart"
+                aria-label="Shopping Bag"
+                className="relative hover:text-brand-gold transition-colors active:scale-95"
+              >
+                <ShoppingBag size={20} strokeWidth={1.5} />
+                {cartCount > 0 && (
+                  <span className="absolute -top-1.5 -right-2 bg-brand-gold text-brand-green-dark text-[12px] w-4 h-4 rounded-full flex items-center justify-center font-bold">
+                    {cartCount}
+                  </span>
+                )}
+              </Link>
+
+              {/* Figma Gold Button (Desktop Only) */}
+              <div className="hidden lg:block">
+                <Button href="/fragrance" className="!py-[7.5px] !px-[20px] !text-[12px] tracking-[2.4px]">
+                  Explore Scents
+                </Button>
+              </div>
+
+              {/* Mobile Menu Toggle */}
+              <button
+                className="md:hidden hover:text-brand-gold transition-colors cursor-pointer p-1 active:scale-95"
+                onClick={() => setIsMobileMenuOpen(true)}
+                aria-label="Open Menu"
+              >
+                <Menu size={24} />
+              </button>
+            </div>
           </div>
-        </div>
-      </nav>
+        </nav>
       </header>
 
       {/* ─── Modern Slide-out Mobile Navigation Drawer (Dark Theme) ───────── */}
@@ -531,7 +543,6 @@ function NavbarInner() {
   );
 }
 
-// File ke aakhir mein paste karein
 export default function Navbar() {
   return (
     <Suspense fallback={<div className="h-[91px] w-full bg-[#183629]" />}>
